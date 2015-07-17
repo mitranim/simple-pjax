@@ -1,0 +1,23 @@
+{
+  "name": "simple-pjax",
+  "main": "simple-pjax.js",
+  "description": "Zero-configuration PJAX for typical websites",
+  "authors": [
+    "Mitranim <me@mitranim.com>"
+  ],
+  "keywords": [
+    "pjax"
+  ],
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Mitranim/simple-pjax.git"
+  },
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ]
+}
