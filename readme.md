@@ -22,7 +22,7 @@ Page transition with pjax:
 * Let it execute the new scripts, if any.
 
 Benefits:
-* Skip redownloading stylesheets and scripts.
+* Skip redownloading stylesheets, scripts, fonts, images.
 * Don't execute scripts that have already been executed.
 * Keep the JavaScript runtime and WebSocket connections intact.
 
