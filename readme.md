@@ -34,8 +34,8 @@ Grab through your favourite package manager:
 
 ```sh
 npm i --save-dev simple-pjax
-jspm install simple-pjax
-bower i --save simple-pjax
+jspm install github:Mitranim/simple-pjax
+bower i --save Mitranim/simple-pjax
 ```
 
 Import in your code:
