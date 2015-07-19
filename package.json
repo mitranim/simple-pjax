@@ -1,6 +1,6 @@
 {
   "name": "simple-pjax",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "main": "simple-pjax.js",
   "scripts": {
     "build": "uglifyjs simple-pjax.js > simple-pjax.min.js",

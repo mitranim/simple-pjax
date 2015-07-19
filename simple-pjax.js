@@ -4,7 +4,7 @@
   'use strict';
 
   // No-op outside browser.
-  if (typeof window === 'undefined') return;
+  if (typeof window !== 'object' || !window) return;
 
   /**
    * Configuration.
@@ -76,66 +76,11 @@
     transitionTo(location, false);
   });
 
-  function syncDocument(doc) {
-    document.title = doc.title;
-    registerExistingScripts();
-    removeKnownScripts(doc);
-    // Remove scripts from the new document before replacing the body. There's
-    // an inconsistency between Blink and Webkit: Blink will ignore these
-    // scripts, but Webkit will execute them when the body is replaced. To avoid
-    // this, we remove the scripts to re-add them later.
-    var scripts = replaceScriptsWithPlaceholders(doc);
-    document.body = doc.body;
-    replacePlaceholdersWithScripts(scripts);
-  }
-
-  function registerExistingScripts() {
-    for (var i = 0; i < document.scripts.length; ++i) {
-      var script = document.scripts[i];
-      if (script.src) scripts[script.src] = null;
-    }
-  }
-
-  function removeKnownScripts(doc) {
-    [].slice.call(doc.scripts).forEach(function(script) {
-      if (script.src in scripts) script.remove();
-    });
-  }
-
-  function replaceScriptsWithPlaceholders(doc) {
-    return [].slice.call(doc.scripts).map(function(script) {
-      var holder = document.createElement('script');
-      holder.setAttribute('data-placeholder-id', ++id);
-      script.setAttribute('data-placeholder-id', id);
-      script.parentNode.insertBefore(holder, script);
-      script.remove();
-      return script;
-    });
-  }
-
-  function replacePlaceholdersWithScripts(scripts) {
-    scripts.forEach(function(script) {
-      // document.body.appendChild(copyScript(script));
-      if (script.hasAttribute('data-placeholder-id')) {
-        var id = script.getAttribute('data-placeholder-id');
-        var holder = document.querySelector('[data-placeholder-id="' + id + '"]');
-        if (holder) {
-          holder.parentNode.insertBefore(copyScript(script), holder);
-          holder.remove();
-        }
-      }
-    });
-  }
-
-  function copyScript(script) {
-    var copy = document.createElement('script');
-    ['id', 'src', 'async', 'defer', 'type', 'charset', 'textContent'].forEach(function(propName) {
-      if (script[propName]) copy[propName] = script[propName];
-    });
-    return copy;
-  }
-
   function transitionTo(urlUtil /* implements URLUtils */, isPush) {
+    // Must capture href now because it may mysteriously change later if
+    // document parsing fails.
+    var href = urlUtil.href;
+
     // No-op if the URL is identical.
     if (isPush && (urlUtil.href === location.href)) return;
 
@@ -147,7 +92,7 @@
 
     xhr.onload = function() {
       if (xhr.status < 200 || xhr.status > 299) {
-        if (isPush) history.pushState(null, '', urlUtil.href);
+        if (isPush) history.pushState(null, '', href);
         xhr.onerror();
         return;
       }
@@ -161,10 +106,10 @@
       syncDocument(newDocument);
       indicateLoadEnd();
 
-      if (isPush) history.pushState(null, newDocument.title, urlUtil.href);
+      if (isPush) history.pushState(null, newDocument.title, href);
 
       // Scroll to the appropriate position.
-      var target = location.hash ? document.querySelector(location.hash) : null;
+      var target = location.hash ? document.getElementById(location.hash.slice(1)) : null;
       if (target instanceof HTMLElement) {
         target.scrollIntoView();
       } else if (isPush && (!(urlUtil instanceof HTMLElement) || !urlUtil.hasAttribute('data-noscroll'))) {
@@ -181,7 +126,7 @@
       location.reload();
     };
 
-    xhr.open('GET', urlUtil.href);
+    xhr.open('GET', href);
     xhr.send(null);
 
     indicateLoadStart(xhr);
@@ -213,5 +158,70 @@
     if (xhr.responseXML) return xhr.responseXML;
     var parser = new DOMParser();
     return parser.parseFromString(xhr.responseText, 'text/html');
+  }
+
+  function syncDocument(doc) {
+    document.title = doc.title;
+    registerExistingScripts();
+    removeKnownScripts(doc);
+    // Remove scripts from the new document before replacing the body. There's
+    // an inconsistency between Blink and Webkit: Blink will ignore these
+    // scripts, but Webkit will execute them when the body is replaced. To avoid
+    // this, we remove the scripts to re-add them later.
+    var pairs = replaceScriptsWithPlaceholders(doc);
+    document.body = doc.body;
+    replacePlaceholdersWithScripts(pairs);
+  }
+
+  function registerExistingScripts() {
+    for (var i = 0; i < document.scripts.length; ++i) {
+      var script = document.scripts[i];
+      if (script.src) scripts[script.src] = null;
+    }
+  }
+
+  function removeKnownScripts(doc) {
+    [].slice.call(doc.scripts).forEach(function(script) {
+      if (script.src in scripts) script.remove();
+    });
+  }
+
+  function replaceScriptsWithPlaceholders(doc) {
+    return [].slice.call(doc.scripts).map(function(script) {
+      var holder = document.createElement('script');
+      script.parentNode.insertBefore(holder, script);
+      script.remove();
+      return {holder: holder, script: script};
+    });
+  }
+
+  function replacePlaceholdersWithScripts(pairs) {
+    for (var i = 0; i < pairs.length; ++i) {
+      var holder = pairs[i].holder;
+      var script = pairs[i].script;
+      if (!holder.parentNode) continue;
+      // Only insert the script back if it doesn't have a document.write or
+      // document.open call (example: script inserted by the browsersync dev
+      // server). Executing one of these on a live document destroys its
+      // contents.
+      if (!destroysDocument(script)) {
+        holder.parentNode.insertBefore(copyScript(script), holder);
+      }
+      holder.remove();
+    }
+  }
+
+  function copyScript(script) {
+    var copy = document.createElement('script');
+    ['id', 'src', 'async', 'defer', 'type', 'charset', 'textContent'].forEach(function(propName) {
+      if (script[propName]) copy[propName] = script[propName];
+    });
+    return copy;
+  }
+
+  // Very primitive check if the given inline script contains calls that
+  // potentially erase the document's contents.
+  function destroysDocument(script) {
+    return /document\s*\.\s*(?:write|open)\s*\(/.test(script.textContent);
   }
 }();
