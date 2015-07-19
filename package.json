@@ -1,9 +1,10 @@
 {
   "name": "simple-pjax",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "main": "simple-pjax.js",
   "scripts": {
-    "build": "uglifyjs simple-pjax.js > simple-pjax.min.js",
+    "start": "tsc -w simple-pjax.ts",
+    "build": "tsc simple-pjax.ts && uglifyjs simple-pjax.js > simple-pjax.min.js",
     "prepublish": "npm run build"
   },
   "description": "Zero-configuration PJAX for typical websites",
@@ -19,6 +20,7 @@
     "url": "https://github.com/Mitranim/simple-pjax.git"
   },
   "devDependencies": {
+    "typescript": "^1.5.0-beta",
     "uglify-js": "^2.4.23"
   }
 }
