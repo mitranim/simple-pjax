@@ -50,8 +50,11 @@ interface Window {simplePjaxConfig: any}
     if (event.button !== 0) return;
     if (event.altKey || event.ctrlKey || event.metaKey || event.shiftKey) return;
 
-    // Ignore links to other pages.
+    // Ignore links to other sites.
     if ((anchor.protocol + '//' + anchor.host) !== location.origin) return;
+
+    // Ignore non-self links.
+    if (anchor.target === '_blank' || anchor.target === '_top') return;
 
     // Ignore hash links on the same page.
     if ((anchor.pathname === location.pathname) && !!anchor.hash) return;
