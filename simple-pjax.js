@@ -71,7 +71,6 @@
         if (!!currentXhr)
             return;
         var xhr = currentXhr = new XMLHttpRequest();
-        xhr.responseType = 'document';
         xhr.onload = function () {
             if (xhr.status < 200 || xhr.status > 299) {
                 if (isPush)
@@ -100,13 +99,15 @@
             }
             // Provide a hook for scripts that may want to run when the document
             // is loaded.
-            document.dispatchEvent(new Event('DOMContentLoaded'));
+            document.dispatchEvent(createEvent('DOMContentLoaded'));
         };
         xhr.onabort = xhr.onerror = xhr.ontimeout = function () {
             indicateLoadEnd();
             location.reload();
         };
         xhr.open('GET', href);
+        // IE compat: must be set after opening the request.
+        xhr.responseType = 'document';
         xhr.send(null);
         indicateLoadStart(xhr);
     }
@@ -157,15 +158,16 @@
     }
     function removeKnownScripts(doc) {
         [].slice.call(doc.scripts).forEach(function (script) {
-            if (script.src in scripts)
-                script.remove();
+            if (script.src in scripts && script.parentNode) {
+                script.parentNode.removeChild(script);
+            }
         });
     }
     function replaceScriptsWithPlaceholders(doc) {
         return [].slice.call(doc.scripts).map(function (script) {
             var holder = document.createElement('script');
             script.parentNode.insertBefore(holder, script);
-            script.remove();
+            script.parentNode.removeChild(script);
             return { holder: holder, script: script };
         });
     }
@@ -182,7 +184,7 @@
             if (!destroysDocument(script)) {
                 holder.parentNode.insertBefore(copyScript(script), holder);
             }
-            holder.remove();
+            holder.parentNode.removeChild(holder);
         }
     }
     function copyScript(script) {
@@ -211,5 +213,12 @@
     }
     else {
         window.simplePjaxConfig = config;
+    }
+    // IE compat: browser doesn't support dispatching events created through
+    // constructors, at least not for window.document.
+    function createEvent(name) {
+        var event = document.createEvent('Event');
+        event.initEvent(name, true, true);
+        return event;
     }
 }();

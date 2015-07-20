@@ -81,7 +81,6 @@ interface Window {simplePjaxConfig: any}
     if (!!currentXhr) return;
 
     let xhr = currentXhr = new XMLHttpRequest();
-    xhr.responseType = 'document';
 
     xhr.onload = function() {
       if (xhr.status < 200 || xhr.status > 299) {
@@ -114,7 +113,7 @@ interface Window {simplePjaxConfig: any}
 
       // Provide a hook for scripts that may want to run when the document
       // is loaded.
-      document.dispatchEvent(new Event('DOMContentLoaded'));
+      document.dispatchEvent(createEvent('DOMContentLoaded'));
     };
 
     xhr.onabort = xhr.onerror = xhr.ontimeout = function() {
@@ -123,6 +122,8 @@ interface Window {simplePjaxConfig: any}
     };
 
     xhr.open('GET', href);
+    // IE compat: must be set after opening the request.
+    xhr.responseType = 'document';
     xhr.send(null);
 
     indicateLoadStart(xhr);
@@ -178,7 +179,9 @@ interface Window {simplePjaxConfig: any}
 
   function removeKnownScripts(doc: HTMLDocument): void {
     [].slice.call(doc.scripts).forEach(function(script) {
-      if (script.src in scripts) script.remove();
+      if (script.src in scripts && script.parentNode) {
+        script.parentNode.removeChild(script);
+      }
     });
   }
 
@@ -186,7 +189,7 @@ interface Window {simplePjaxConfig: any}
     return [].slice.call(doc.scripts).map(function(script) {
       let holder = document.createElement('script');
       script.parentNode.insertBefore(holder, script);
-      script.remove();
+      script.parentNode.removeChild(script);
       return {holder: holder, script: script};
     });
   }
@@ -203,7 +206,7 @@ interface Window {simplePjaxConfig: any}
       if (!destroysDocument(script)) {
         holder.parentNode.insertBefore(copyScript(script), holder);
       }
-      holder.remove();
+      holder.parentNode.removeChild(holder);
     }
   }
 
@@ -235,5 +238,13 @@ interface Window {simplePjaxConfig: any}
     module.exports = config;
   } else {
     window.simplePjaxConfig = config;
+  }
+
+  // IE compat: browser doesn't support dispatching events created through
+  // constructors, at least not for window.document.
+  function createEvent(name: string): Event {
+    let event = document.createEvent('Event');
+    event.initEvent(name, true, true);
+    return event;
   }
 }();
