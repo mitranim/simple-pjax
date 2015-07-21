@@ -1,3 +1,12 @@
+## TOC
+
+* [Description](#description)
+* [Installation](#installation)
+* [Usage](#usage)
+* [Configuration](#configuration)
+* [Gotchas](#gotchas)
+* [ToDo](#todo)
+
 ## Description
 
 Zero-configuration library that improves page loading times for classic
@@ -28,6 +37,9 @@ Benefits:
 * Keep the JavaScript runtime and WebSocket connections intact.
 
 The benefits are especially dramatic on mobile devies and slow connections.
+
+Works on IE10+. Has no effect in browsers that don't support
+`history.pushState`.
 
 ## Installation
 
@@ -92,11 +104,6 @@ config.onIndicateLoadEnd = function() {
 };
 ```
 
-## Compatibility
-
-Works on IE10+. Has no effect in browsers that don't support
-`history.pushState`.
-
 ## Gotchas
 
 You need to watch out for code that modifies the DOM on page load. Most websites
@@ -125,7 +132,7 @@ a `DOMContentLoaded` listener, and your React widgets will render just fine.
 Doesn't work out of the box with Angular and Polymer due to how their bootstrap
 process works. Please let me know if you find any workarounds.
 
-## TODO
+## ToDo
 
 Need to make a demo. For now, you can check it out on the [stylific
 documentation](http://mitranim.com/stylific/) or my [home
