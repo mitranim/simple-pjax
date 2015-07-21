@@ -1,10 +1,10 @@
 {
   "name": "simple-pjax",
-  "version": "0.0.6",
+  "version": "0.0.7",
   "main": "simple-pjax.js",
   "scripts": {
     "start": "tsc -w simple-pjax.ts",
-    "build": "tsc simple-pjax.ts && uglifyjs simple-pjax.js > simple-pjax.min.js",
+    "build": "tsc simple-pjax.ts && uglifyjs simple-pjax.js > simple-pjax.min.js -m --lint",
     "prepublish": "npm run build"
   },
   "description": "Zero-configuration PJAX for typical websites",

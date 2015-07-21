@@ -22,8 +22,6 @@
     var lastPathname;
     var lastQuery;
     rememberPath();
-    // Ids used for placeholder scripts.
-    var id = 0;
     // Scripts that have already been downloaded by src.
     var scripts = Object.create(null);
     // No-op if pushState is unavailable.
@@ -56,7 +54,7 @@
         event.preventDefault();
         transitionTo(anchor, true);
     });
-    window.addEventListener('popstate', function (event) {
+    window.addEventListener('popstate', function () {
         // Ignore useless popstate events (initial popstate in Webkit and popstate
         // on hash changes).
         if (pathUnchanged())
@@ -110,16 +108,16 @@
             location.reload();
         };
         xhr.open('GET', href);
-        // IE compat: must be set after opening the request.
+        // IE compat: responseType must be set after opening the request.
         xhr.responseType = 'document';
         xhr.send(null);
         indicateLoadStart(xhr);
     }
     function indicateLoadStart(xhr) {
         if ((config.indicateLoadAfter | 0) > 0) {
-            var id_1 = setTimeout(function () {
+            var id = setTimeout(function () {
                 if (xhr.readyState === 4) {
-                    clearTimeout(4);
+                    clearTimeout(id);
                     return;
                 }
                 if (typeof config.onIndicateLoadStart === 'function') {
@@ -136,10 +134,13 @@
     }
     // TODO test in Opera.
     function getDocument(xhr) {
+        var type = xhr.getResponseHeader('Content-Type') || 'text/html';
+        // Ignore non-HTML resources, such as XML or plan text.
+        if (!/html/.test(type))
+            return null;
         if (xhr.responseXML)
             return xhr.responseXML;
-        var parser = new DOMParser();
-        return parser.parseFromString(xhr.responseText, 'text/html');
+        return new DOMParser().parseFromString(xhr.responseText, 'text/html');
     }
     function syncDocument(doc) {
         document.title = doc.title;

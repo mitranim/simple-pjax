@@ -30,9 +30,6 @@ interface Window {simplePjaxConfig: any}
   let lastQuery: string;
   rememberPath();
 
-  // Ids used for placeholder scripts.
-  let id = 0;
-
   // Scripts that have already been downloaded by src.
   const scripts = Object.create(null);
 
@@ -65,7 +62,7 @@ interface Window {simplePjaxConfig: any}
     transitionTo(anchor, true);
   });
 
-  window.addEventListener('popstate', event => {
+  window.addEventListener('popstate', () => {
     // Ignore useless popstate events (initial popstate in Webkit and popstate
     // on hash changes).
     if (pathUnchanged()) return;
@@ -126,7 +123,7 @@ interface Window {simplePjaxConfig: any}
     };
 
     xhr.open('GET', href);
-    // IE compat: must be set after opening the request.
+    // IE compat: responseType must be set after opening the request.
     xhr.responseType = 'document';
     xhr.send(null);
 
@@ -137,7 +134,7 @@ interface Window {simplePjaxConfig: any}
     if ((config.indicateLoadAfter | 0) > 0) {
       const id = setTimeout(function() {
         if (xhr.readyState === 4) {
-          clearTimeout(4);
+          clearTimeout(id);
           return;
         }
         if (typeof config.onIndicateLoadStart === 'function') {
@@ -156,9 +153,11 @@ interface Window {simplePjaxConfig: any}
 
   // TODO test in Opera.
   function getDocument(xhr: XMLHttpRequest): HTMLDocument {
+    const type = xhr.getResponseHeader('Content-Type') || 'text/html';
+    // Ignore non-HTML resources, such as XML or plan text.
+    if (!/html/.test(type)) return null;
     if (xhr.responseXML) return xhr.responseXML;
-    const parser = new DOMParser();
-    return parser.parseFromString(xhr.responseText, 'text/html');
+    return new DOMParser().parseFromString(xhr.responseText, 'text/html');
   }
 
   function syncDocument(doc: HTMLDocument): void {
