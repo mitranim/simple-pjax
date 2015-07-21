@@ -121,7 +121,7 @@ the document body, the `DOMContentLoaded` event is artificially re-emitted.
 Non-inline code that wants to run on document load should listen for this event
 and rerun after each page transition.
 
-The popular `jQuery#ready` method automatically detaches callbacks after running
+The popular `jQuery#ready` method automatically detaches listeners after running
 them once. If you're using it in non-inline scripts, you'll need to add a
 `DOMContentLoaded` listener to rerun that logic on each new page.
 
@@ -134,6 +134,6 @@ process works. Please let me know if you find any workarounds.
 
 ## ToDo
 
-Need to make a demo. For now, you can check it out on the [stylific
+Need to make a demo. For now, you can check it out on [stylific
 documentation](http://mitranim.com/stylific/) or my [home
 page](http://mitranim.com/).
