@@ -23,10 +23,11 @@ interface Window {simplePjaxConfig: any}
   };
 
   // Current request. Only one can be active at a time.
-  let currentXhr = null;
+  let currentXhr: XMLHttpRequest;
 
   // Current pathname and query, used to detect useless popstate events.
-  let lastPathname, lastQuery;
+  let lastPathname: string;
+  let lastQuery: string;
   rememberPath();
 
   // Ids used for placeholder scripts.
@@ -75,7 +76,7 @@ interface Window {simplePjaxConfig: any}
   function transitionTo(urlUtil: HTMLAnchorElement|Location, isPush: boolean): void {
     // Must capture href now because it may mysteriously change later if
     // document parsing fails.
-    let href = urlUtil.href;
+    const href = urlUtil.href;
 
     // No-op if the URL is identical.
     if (isPush && (urlUtil.href === location.href)) return;
@@ -83,7 +84,7 @@ interface Window {simplePjaxConfig: any}
     // No-op if a request is currently in progress.
     if (!!currentXhr) return;
 
-    let xhr = currentXhr = new XMLHttpRequest();
+    const xhr = currentXhr = new XMLHttpRequest();
 
     xhr.onload = function() {
       if (xhr.status < 200 || xhr.status > 299) {
@@ -92,7 +93,7 @@ interface Window {simplePjaxConfig: any}
         return;
       }
 
-      let newDocument = getDocument(xhr);
+      const newDocument = getDocument(xhr);
       if (!newDocument) {
         xhr.onerror(null);
         return;
@@ -107,7 +108,7 @@ interface Window {simplePjaxConfig: any}
       }
 
       // Scroll to the appropriate position.
-      let target = location.hash ? document.getElementById(location.hash.slice(1)) : null;
+      const target = location.hash ? document.getElementById(location.hash.slice(1)) : null;
       if (target instanceof HTMLElement) {
         target.scrollIntoView();
       } else if (isPush && (!(urlUtil instanceof HTMLElement) || !urlUtil.hasAttribute('data-noscroll'))) {
@@ -134,7 +135,7 @@ interface Window {simplePjaxConfig: any}
 
   function indicateLoadStart(xhr: XMLHttpRequest): void {
     if ((config.indicateLoadAfter | 0) > 0) {
-      let id = setTimeout(function() {
+      const id = setTimeout(function() {
         if (xhr.readyState === 4) {
           clearTimeout(4);
           return;
@@ -156,7 +157,7 @@ interface Window {simplePjaxConfig: any}
   // TODO test in Opera.
   function getDocument(xhr: XMLHttpRequest): HTMLDocument {
     if (xhr.responseXML) return xhr.responseXML;
-    let parser = new DOMParser();
+    const parser = new DOMParser();
     return parser.parseFromString(xhr.responseText, 'text/html');
   }
 
@@ -168,14 +169,14 @@ interface Window {simplePjaxConfig: any}
     // an inconsistency between Blink and Webkit: Blink will ignore these
     // scripts, but Webkit will execute them when the body is replaced. To avoid
     // this, we remove the scripts to re-add them later.
-    let pairs = replaceScriptsWithPlaceholders(doc);
+    const pairs = replaceScriptsWithPlaceholders(doc);
     document.body = doc.body;
     replacePlaceholdersWithScripts(pairs);
   }
 
   function registerExistingScripts(): void {
     for (let i = 0; i < document.scripts.length; ++i) {
-      let script = <HTMLScriptElement>document.scripts[i];
+      const script = <HTMLScriptElement>document.scripts[i];
       if (script.src) scripts[script.src] = null;
     }
   }
@@ -190,7 +191,7 @@ interface Window {simplePjaxConfig: any}
 
   function replaceScriptsWithPlaceholders(doc: HTMLDocument) {
     return [].slice.call(doc.scripts).map(function(script) {
-      let holder = document.createElement('script');
+      const holder = document.createElement('script');
       script.parentNode.insertBefore(holder, script);
       script.parentNode.removeChild(script);
       return {holder: holder, script: script};
@@ -199,8 +200,8 @@ interface Window {simplePjaxConfig: any}
 
   function replacePlaceholdersWithScripts(pairs): void {
     for (let i = 0; i < pairs.length; ++i) {
-      let holder = pairs[i].holder;
-      let script = pairs[i].script;
+      const holder = pairs[i].holder;
+      const script = pairs[i].script;
       if (!holder.parentNode) continue;
       // Only insert the script back if it doesn't have a document.write or
       // document.open call (example: script inserted by the browsersync dev
@@ -214,7 +215,7 @@ interface Window {simplePjaxConfig: any}
   }
 
   function copyScript(script: HTMLScriptElement): HTMLScriptElement {
-    let copy = document.createElement('script');
+    const copy = document.createElement('script');
     ['id', 'src', 'async', 'defer', 'type', 'charset', 'textContent'].forEach(function(propName) {
       if (script[propName]) copy[propName] = script[propName];
     });
@@ -246,7 +247,7 @@ interface Window {simplePjaxConfig: any}
   // IE compat: browser doesn't support dispatching events created through
   // constructors, at least not for window.document.
   function createEvent(name: string): Event {
-    let event = document.createEvent('Event');
+    const event = document.createEvent('Event');
     event.initEvent(name, true, true);
     return event;
   }

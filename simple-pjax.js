@@ -17,9 +17,10 @@
         }
     };
     // Current request. Only one can be active at a time.
-    var currentXhr = null;
+    var currentXhr;
     // Current pathname and query, used to detect useless popstate events.
-    var lastPathname, lastQuery;
+    var lastPathname;
+    var lastQuery;
     rememberPath();
     // Ids used for placeholder scripts.
     var id = 0;

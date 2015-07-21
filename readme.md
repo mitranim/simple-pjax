@@ -1,14 +1,15 @@
 ## Description
 
-Enables faster page transitions with zero configuration. Gives classic
-multi-page websites some of the advantages enjoyed by SPA (single-page apps)
-for free.
+Zero-configuration library that improves page loading times for classic
+multi-page websites. Gives them some of the advantages enjoyed by SPA
+(single-page apps).
 
-`Pjax` is a combonim of `pushState` and `Ajax`. There are other pjax
-implementations floating around, but most of them are jQuery-based or
-overengineered. Hence `simple-pjax`.
+`Pjax` is a combonim of `pushState` and `Ajax`. There are
+[other](https://github.com/defunkt/jquery-pjax) pjax implementations floating
+around, but most of them are jQuery-based or overengineered. Hence `simple-pjax`.
 
-Rough idea of how page transitions work on most sites:
+To explain what pjax is about, first let's get a rough idea of how page
+transitions work on most sites:
 * Load and parse the new HTML document. Create a new JavaScript runtime.
 * Redownload all stylesheets, scripts, fonts, images, etc. (Connections take time even if the resources are cached.)
 * Parse and execute the downloaded scripts.
@@ -16,7 +17,7 @@ Rough idea of how page transitions work on most sites:
 * Throw away the current document and JavaScript runtime, switch to the new document and runtime.
 * Download and execute asynchronous scripts, if any.
 
-Page transition with pjax:
+Here's how page transitions work with simple-pjax:
 * Load and parse the new HTML document.
 * Replace the contents of the current document.
 * Let it execute the new scripts, if any.
@@ -52,12 +53,12 @@ Or include as a script tag:
 
 ## Usage
 
-Works automatically. When navigating between internal pages, it prevents the
-full page reload. Instead, it fetches the new document by ajax and replaces
-the contents of the current document.
+Works automatically. When navigating between internal pages, the library
+prevents a full page reload. Instead, it fetches the new document by ajax and
+replaces the contents of the current document.
 
-After downloading the document, executes any _new_ and _inline_ scripts found in
-it. Ignores scripts that have been previously downloaded.
+After replacing the document, it executes any _new_ and _inline_ scripts found
+in it. Ignores scripts that have been previously downloaded.
 
 Affects both `<a>` clicks and `popstate` history events, such as when the back
 button is clicked.
@@ -68,9 +69,9 @@ indicator.
 
 ## Configuration
 
-`simple-pjax` works without configuration, but also exposes a configuration
-object with some options. In the presense of a CommonJS system, the config
-object is exported. Otherwise it's assigned as `window.simplePjaxConfig`.
+`simple-pjax` works with zero configuration, but it also exposes a mutable
+configuration object. In the presense of a CommonJS-compliant module system, the
+config is exported; otherwise it's assigned to `window.simplePjaxConfig`.
 
 Example config.
 
@@ -93,9 +94,39 @@ config.onIndicateLoadEnd = function() {
 
 ## Compatibility
 
-Should work on IE10+. Has no effect in browsers that don't support
+Works on IE10+. Has no effect in browsers that don't support
 `history.pushState`.
+
+## Gotchas
+
+You need to watch out for code that modifies the DOM on page load. Most websites
+have this in the form of analytics and UI widgets. When transitioning to a new
+page, that code must be re-executed to modify the new document body.
+
+`simple-pjax` mitigates this in two ways.
+
+First, it automatically executes any inline scripts found in the new document.
+If you embed analytics and DOM bootstrap scripts inline, they
+should work out-of-the-box.
+
+Second, it proposes a convention: when transitioning to a new page and replacing
+the document body, the `DOMContentLoaded` event is artificially re-emitted.
+Non-inline code that wants to run on document load should listen for this event
+and rerun after each page transition.
+
+The popular `jQuery#ready` method automatically detaches callbacks after running
+them once. If you're using it in non-inline scripts, you'll need to add a
+`DOMContentLoaded` listener to rerun that logic on each new page.
+
+`simple-pjax` is compatible out of the box with
+[React](http://facebook.github.io/react). Put your `React.render` calls into
+a `DOMContentLoaded` listener, and your React widgets will render just fine.
+
+Doesn't work out of the box with Angular and Polymer due to how their bootstrap
+process works. Please let me know if you find any workarounds.
 
 ## TODO
 
-Make a demo.
+Need to make a demo. For now, you can check it out on the [stylific
+documentation](http://mitranim.com/stylific/) or my [home
+page](http://mitranim.com/).
