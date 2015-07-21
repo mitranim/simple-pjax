@@ -104,6 +104,13 @@ config.onIndicateLoadEnd = function() {
 };
 ```
 
+You can also prevent page scrolling by adding the `data-noscroll` attribute to a
+link:
+
+```html
+<a href="/other-page" data-noscroll>clicking me doesn't scroll the page!</a>
+```
+
 ## Gotchas
 
 You need to watch out for code that modifies the DOM on page load. Most websites
@@ -126,7 +133,7 @@ them once. If you're using it in non-inline scripts, you'll need to add a
 `DOMContentLoaded` listener to rerun that logic on each new page.
 
 `simple-pjax` is compatible out of the box with
-[React](http://facebook.github.io/react). Put your `React.render` calls into
+[React](http://facebook.github.io/react/). Put your `React.render` calls into
 a `DOMContentLoaded` listener, and your React widgets will render just fine.
 
 Doesn't work out of the box with Angular and Polymer due to how their bootstrap
