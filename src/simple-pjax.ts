@@ -9,6 +9,9 @@ interface Window {simplePjaxConfig: any}
   // No-op outside browser.
   if (typeof window !== 'object' || !window) return;
 
+  // No-op if pushState is unavailable.
+  if (typeof history.pushState !== 'function') return;
+
   // Shadow frequently used globals (helps with minification).
   const document = window.document;
   const location = window.location;
@@ -34,11 +37,8 @@ interface Window {simplePjaxConfig: any}
   let lastQuery: string;
   rememberPath();
 
-  // Scripts that have already been downloaded by src.
+  // Scripts that have already been downloaded by the browser by src.
   const scripts = Object.create(null);
-
-  // No-op if pushState is unavailable.
-  if (typeof history.pushState !== 'function') return;
 
   document.addEventListener('click', event => {
     // Find a clicked <a>. No-op if no anchor is available.
@@ -55,7 +55,7 @@ interface Window {simplePjaxConfig: any}
     // Ignore links to other sites.
     if ((anchor.protocol + '//' + anchor.host) !== location.origin) return;
 
-    // Ignore non-self links.
+    // Ignore links for other tabs or windows.
     if (anchor.target === '_blank' || anchor.target === '_top') return;
 
     // Ignore hash links on the same page.
@@ -249,8 +249,8 @@ interface Window {simplePjaxConfig: any}
     window.simplePjaxConfig = config;
   }
 
-  // IE compat: browser doesn't support dispatching events created through
-  // constructors, at least not for window.d.
+  // IE compat: IE doesn't support dispatching events created with constructors,
+  // at least not for document.dispatchEvent.
   function createEvent(name: string): Event {
     const event = document.createEvent('Event');
     event.initEvent(name, true, true);
