@@ -2,7 +2,7 @@
 
 This page renders a line of text with [React](http://facebook.github.io/react).
 Note that it works when leaving and revisiting the page. Also note that the
-scripts don't get redownloaded and re-executed on page transitions.
+scripts are only downloaded and executed _once_, on the initial page load.
 
 <div is="demoComponent"></div>
 

@@ -92,7 +92,6 @@ interface Window {simplePjaxConfig: any}
 
     xhr.onload = function() {
       if (xhr.status < 200 || xhr.status > 299) {
-        if (isPush) history.pushState(null, '', href);
         xhr.onerror(null);
         return;
       }
@@ -125,7 +124,7 @@ interface Window {simplePjaxConfig: any}
     };
 
     xhr.onabort = xhr.onerror = xhr.ontimeout = function() {
-      indicateLoadEnd();
+      if (isPush) history.pushState(null, '', href);
       location.reload();
     };
 

@@ -2,7 +2,7 @@
 
 This page logs a message to the console on each visit. Note how the messages
 persist between visits. The JavaScript runtime stays intact until you reload the
-tab.
+browser tab.
 
 `simple-pjax` automatically executes inline scripts found on the newly
 downloaded page. This makes it out-of-the-box compatible with analytics snippets
