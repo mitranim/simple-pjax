@@ -11,6 +11,8 @@ This site is very lightweight, so the effects won't seem very dramatic. However,
 for heavy websites with large amounts of contents, the improvements can be
 cataclysmic.
 
+This is a functional, fully automatic library. Try it on your website!
+
 See the full readme in the
 <a href="https://github.com/Mitranim/simple-pjax" target="_blank">
   <span>source repository</span>

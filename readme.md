@@ -14,7 +14,9 @@ multi-page websites. Gives them some of the advantages enjoyed by SPA
 
 See a simple demo at http://mitranim.com/simple-pjax/.
 
-`Pjax` is a combonim of `pushState` and `Ajax`. There are
+Read an explanatory post at http://mitranim.com/thoughts/cheating-for-performance-pjax/.
+
+`Pjax` is a combo of `pushState` and `Ajax`. There are
 [other](https://github.com/defunkt/jquery-pjax) pjax implementations floating
 around, but most of them are jQuery-based or overengineered. Hence `simple-pjax`.
 
@@ -33,7 +35,7 @@ Here's how page transitions work with simple-pjax:
 * Let it execute the new scripts, if any.
 
 Benefits:
-* Skip redownloading stylesheets, scripts, fonts, images.
+* Don't redownload stylesheets, scripts, fonts, images.
 * Don't execute scripts that have already been executed.
 * Keep the JavaScript runtime and WebSocket connections intact.
 

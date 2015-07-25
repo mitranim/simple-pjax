@@ -102,13 +102,13 @@ interface Window {simplePjaxConfig: any}
         return;
       }
 
-      syncDocument(newDocument);
-      indicateLoadEnd();
-
       if (isPush) {
         history.pushState(null, newDocument.title, href);
         rememberPath();
       }
+
+      syncDocument(newDocument);
+      indicateLoadEnd();
 
       // Scroll to the appropriate position.
       const target = location.hash ? document.getElementById(location.hash.slice(1)) : null;
