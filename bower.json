@@ -1,6 +1,6 @@
 {
   "name": "simple-pjax",
-  "main": "simple-pjax.js",
+  "main": "lib/simple-pjax.js",
   "description": "Zero-configuration PJAX for typical websites",
   "authors": [
     "Mitranim <me@mitranim.com>"

@@ -1,0 +1,59 @@
+html {
+  background-color: darken($sf-color-background, 2%);
+}
+
+// Prefer circle bullets.
+ul {
+  list-style-type: circle;
+}
+
+.sidenav {
+  @extend .layout-column;
+  min-width: 12em;
+
+  > * {
+    @extend .pad;
+
+    &::after {
+      @extend .fa;
+      @extend .fa-chevron-right:before;
+      float: right;
+      @include sf-transitions(all);
+    }
+    &:not(.active):not(:hover):not(:focus):not(:active)::after {
+      transform: translateX(-$sf-space / 2);
+      opacity: 0;
+    }
+    &:hover, &:focus {
+      background-color: rgba($color-primary, 0.1);
+    }
+    &.active {
+      background-color: rgba($color-primary, 0.2);
+    }
+    > span {
+      @include sf-transitions(all);
+      display: inline-block;
+    }
+    &:hover, &:focus, &.active {
+      > span {
+        transform: translateX($sf-space / 2);
+      }
+    }
+  }
+}
+
+.banner {
+  // Layout.
+  min-height: 6em;
+  // Cosmetic.
+  background-color: $color-primary;
+  color: white;
+  a {color: white}
+}
+
+.fa.pop {
+  @include sf-transitions(all);
+}
+.fa.pop:hover {
+  transform: scale(1.2);
+}

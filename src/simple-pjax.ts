@@ -9,14 +9,18 @@ interface Window {simplePjaxConfig: any}
   // No-op outside browser.
   if (typeof window !== 'object' || !window) return;
 
+  // Shadow frequently used globals (helps with minification).
+  const document = window.document;
+  const location = window.location;
+
   // Configuration.
   const config = {
-    indicateLoadAfter: 250,
-    onIndicateLoadStart: function() {
+    loadIndicatorDelay: 250,
+    onIndicateLoadStart() {
       document.documentElement.style.transition = 'opacity linear 0.05s';
       document.documentElement.style.opacity = '0.8';
     },
-    onIndicateLoadEnd: function() {
+    onIndicateLoadEnd() {
       document.documentElement.style.transition = null;
       document.documentElement.style.opacity = null;
     }
@@ -131,7 +135,7 @@ interface Window {simplePjaxConfig: any}
   }
 
   function indicateLoadStart(xhr: XMLHttpRequest): void {
-    if ((config.indicateLoadAfter | 0) > 0) {
+    if (config.loadIndicatorDelay > 0) {
       const id = setTimeout(function() {
         if (xhr.readyState === 4) {
           clearTimeout(id);
@@ -140,12 +144,12 @@ interface Window {simplePjaxConfig: any}
         if (typeof config.onIndicateLoadStart === 'function') {
           config.onIndicateLoadStart();
         }
-      }, config.indicateLoadAfter);
+      }, config.loadIndicatorDelay);
     }
   }
 
   function indicateLoadEnd(): void {
-    if (typeof config.onIndicateLoadEnd === 'function') {
+    if (config.loadIndicatorDelay > 0 && typeof config.onIndicateLoadEnd === 'function') {
       config.onIndicateLoadEnd();
     }
     currentXhr = null;
@@ -202,8 +206,8 @@ interface Window {simplePjaxConfig: any}
       const holder = pairs[i].holder;
       const script = pairs[i].script;
       if (!holder.parentNode) continue;
-      // Only insert the script back if it doesn't have a document.write or
-      // document.open call (example: script inserted by the browsersync dev
+      // Only insert the script back if it doesn't have a d.write or
+      // d.open call (example: script inserted by the browsersync dev
       // server). Executing one of these on a live document destroys its
       // contents.
       if (!destroysDocument(script)) {
@@ -244,7 +248,7 @@ interface Window {simplePjaxConfig: any}
   }
 
   // IE compat: browser doesn't support dispatching events created through
-  // constructors, at least not for window.document.
+  // constructors, at least not for window.d.
   function createEvent(name: string): Event {
     const event = document.createEvent('Event');
     event.initEvent(name, true, true);

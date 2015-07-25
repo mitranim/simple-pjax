@@ -5,13 +5,14 @@
 * [Usage](#usage)
 * [Configuration](#configuration)
 * [Gotchas](#gotchas)
-* [ToDo](#todo)
 
 ## Description
 
 Zero-configuration library that improves page loading times for classic
 multi-page websites. Gives them some of the advantages enjoyed by SPA
 (single-page apps).
+
+See a simple demo at http://mitranim.com/simple-pjax/.
 
 `Pjax` is a combonim of `pushState` and `Ajax`. There are
 [other](https://github.com/defunkt/jquery-pjax) pjax implementations floating
@@ -138,9 +139,3 @@ a `DOMContentLoaded` listener, and your React widgets will render just fine.
 
 Doesn't work out of the box with Angular and Polymer due to how their bootstrap
 process works. Please let me know if you find any workarounds.
-
-## ToDo
-
-Need to make a demo. For now, you can check it out on [stylific
-documentation](http://mitranim.com/stylific/) or my [home
-page](http://mitranim.com/).

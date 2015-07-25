@@ -1,0 +1,42 @@
+// @import './node_modules/stylific/scss/_variables';
+
+// http://brandcolors.net
+$color-github:  #4183c4;  // unverified
+$color-twitter: #55acee;  // verified
+
+// http://clrs.cc
+$color-navy:    #001f3f;
+$color-blue:    #0074d9;
+$color-aqua:    #7fdbff;
+$color-teal:    #39cccc;
+$color-olive:   #3d9970;
+$color-green:   #2ecc40;
+$color-lime:    #01ff70;
+$color-yellow:  #ffdc00;
+$color-orange:  #ff851b;
+$color-red:     #ff4136;
+$color-maroon:  #85144b;
+$color-fuchsia: #f012be;
+$color-purple:  #b10dc9;
+$color-black:   #111111;
+$color-gray:    #aaaaaa;
+$color-silver:  #dddddd;
+
+$sf-color-map-primary: (
+  name: 'primary',
+  default: darken($color-aqua, 20%),
+  active: darken($color-aqua, 25%),
+  selected: darken($color-aqua, 30%)
+);
+
+$color-primary: map-get($sf-color-map-primary, default);
+
+$sf-color-link: darken($color-primary, 30%);
+
+$sf-color-text: hsl(hue($color-primary), saturation($color-primary), 15%);
+
+$sf-font-family-sans-serif: PT Sans, Verdana, sans-serif;
+
+$sf-body-max-width: 768px;
+
+$fa-font-path: '/fonts';

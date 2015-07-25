@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>simple-pjax</title>
+    <meta name="author" content="mitranim">
+    <meta charset="utf-8">
+    <base href="/simple-pjax/">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, minimum-scale=1, maximum-scale=2, initial-scale=1, user-scalable=yes">
+    <link rel="stylesheet" type="text/css" href="/simple-pjax/styles/app.css">
+  </head>
+
+  <body>
+    <%= $include('$partials/banner', $) %>
+
+    <div class="layout-row">
+      <%= $include('$partials/sidenav', $) %>
+      <article class="flex-1">
+        <% if ($path === 'index') { %>
+          <%= $include('$index', $) %>
+        <% } else { %>
+          <%= $content %>
+        <% } %>
+      </article>
+    </div>
+
+    <!-- JS -->
+    <% if (prod()) { %>
+      <script src="app.js" async></script>
+    <% } else { %>
+      <script src="node_modules/systemjs/dist/system.js"></script>
+      <script src="system.config.js"></script>
+      <script>
+        System.import('app');
+      </script>
+    <% } %>
+  </body>
+</html>
