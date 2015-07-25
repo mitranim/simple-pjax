@@ -61,6 +61,9 @@ interface Window {simplePjaxConfig: any}
     // Ignore hash links on the same page.
     if ((anchor.pathname === location.pathname) && !!anchor.hash) return;
 
+    // Ignore links with the data-force-reload attribute.
+    if (anchor.hasAttribute('data-force-reload')) return;
+
     // Load clicked link.
     event.preventDefault();
     transitionTo(anchor, true);

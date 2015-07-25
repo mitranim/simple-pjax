@@ -105,11 +105,18 @@ config.onIndicateLoadEnd = function() {
 };
 ```
 
-You can also prevent page scrolling by adding the `data-noscroll` attribute to a
+You can prevent page scrolling by adding the `data-noscroll` attribute to a
 link:
 
 ```html
 <a href="/other-page" data-noscroll>clicking me doesn't scroll the page!</a>
+```
+
+If you want to force page reload when clicking a given link, add the
+`data-force-reload` attribute:
+
+```html
+<a href="/other-page" data-force-reload>clicking me always reloads the page!</a>
 ```
 
 ## Gotchas

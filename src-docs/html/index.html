@@ -24,6 +24,8 @@
       </article>
     </div>
 
+    <%= $include('$partials/footer', $) %>
+
     <!-- JS -->
     <% if (prod()) { %>
       <script src="app.js" async></script>
