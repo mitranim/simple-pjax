@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>simple-pjax</title>
+    <meta name="author" content="mitranim">
+    <meta charset="utf-8">
+    <base href="/simple-pjax/">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, minimum-scale=1, maximum-scale=2, initial-scale=1, user-scalable=yes">
+    <link rel="stylesheet" type="text/css" href="/styles/app.css">
+  </head>
+
+  <body>
+    <div class="banner layout-row">
+  <a href="" class="flex-1 pad space-out">
+    <h1><code>simple-pjax</code> demo</h1>
+    <p>Click sidebar links while observing network activity</p>
+  </a>
+
+  <div class="layout-column pad space-out" style="font-size: 2em">
+    <a href="https://github.com/Mitranim/simple-pjax" target="_blank" class="fa fa-github pop"></a>
+    <a href="http://mitranim.com" target="_blank" class="fa fa-user pop"></a>
+  </div>
+</div>
+
+
+    <div class="layout-row">
+      <div class="sidenav">
+  <a  href=""><span>Home</span></a>
+  <a class="active" href="image/"><span>Image</span></a>
+  <a  href="react/"><span>React</span></a>
+  <a  href="console/"><span>Console</span></a>
+</div>
+
+      <article class="flex-1">
+        
+          <h2 id="image">Image</h2>
+<p>This page displays a large image. When revisiting the page, it&#39;s shown
+instantly, with no network activity or flicker.</p>
+<p><img src="images/122276339.jpg"></p>
+
+        
+      </article>
+    </div>
+
+    <!-- JS -->
+    
+      <script src="/app.js" async></script>
+    
+  </body>
+</html>
