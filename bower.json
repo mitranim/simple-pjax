@@ -14,10 +14,10 @@
     "url": "https://github.com/Mitranim/simple-pjax.git"
   },
   "ignore": [
-    "**/.*",
-    "node_modules",
-    "bower_components",
-    "test",
-    "tests"
+    "*",
+    "!lib/simple-pjax.js",
+    "!lib/simple-pjax.min.js",
+    "!bower.json",
+    "!readme.md"
   ]
 }
