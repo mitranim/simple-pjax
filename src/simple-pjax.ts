@@ -96,6 +96,8 @@ interface Window {simplePjaxConfig: any}
         return;
       }
 
+      currentXhr = null;
+
       const newDocument = getDocument(xhr);
       if (!newDocument) {
         xhr.onerror(null);
@@ -107,7 +109,7 @@ interface Window {simplePjaxConfig: any}
         rememberPath();
       }
 
-      syncDocument(newDocument);
+      replaceDocument(newDocument);
       indicateLoadEnd();
 
       // Scroll to the appropriate position.
@@ -124,6 +126,7 @@ interface Window {simplePjaxConfig: any}
     };
 
     xhr.onabort = xhr.onerror = xhr.ontimeout = function() {
+      currentXhr = null;
       if (isPush) history.pushState(null, '', href);
       location.reload();
     };
@@ -154,7 +157,6 @@ interface Window {simplePjaxConfig: any}
     if (config.loadIndicatorDelay > 0 && typeof config.onIndicateLoadEnd === 'function') {
       config.onIndicateLoadEnd();
     }
-    currentXhr = null;
   }
 
   // TODO test in Opera.
@@ -166,7 +168,7 @@ interface Window {simplePjaxConfig: any}
     return new DOMParser().parseFromString(xhr.responseText, 'text/html');
   }
 
-  function syncDocument(doc: HTMLDocument): void {
+  function replaceDocument(doc: HTMLDocument): void {
     document.title = doc.title;
     registerExistingScripts();
     removeKnownScripts(doc);
@@ -188,7 +190,7 @@ interface Window {simplePjaxConfig: any}
 
   function removeKnownScripts(doc: HTMLDocument): void {
     [].slice.call(doc.scripts).forEach(function(script) {
-      if (script.src in scripts && script.parentNode) {
+      if (script.src in scripts && !!script.parentNode) {
         script.parentNode.removeChild(script);
       }
     });
