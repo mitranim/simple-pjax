@@ -83,7 +83,7 @@ interface Window {simplePjaxConfig: any}
     const href = urlUtil.href;
 
     // No-op if the URL is identical.
-    if (isPush && (urlUtil.href === location.href)) return;
+    if (isPush && (href === location.href)) return;
 
     // No-op if a request is currently in progress.
     if (!!currentXhr) return;

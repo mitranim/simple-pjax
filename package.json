@@ -43,6 +43,7 @@
     "gulp-watch": "^4.3.3",
     "highlight.js": "^8.6.0",
     "react": "^0.13.3",
+    "shelljs": "^0.5.1",
     "stylific": "0.8.3",
     "systemjs": "^0.18.4",
     "systemjs-builder": "^0.12.2",

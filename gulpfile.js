@@ -14,6 +14,7 @@ var hjs    = require('highlight.js');
 var marked = require('gulp-marked/node_modules/marked');
 var flags  = require('yargs').argv;
 var pt     = require('path');
+var shell  = require('shelljs');
 
 /********************************** Globals **********************************/
 
@@ -99,10 +100,14 @@ gulp.task('lib:compile', function() {
     .pipe(gulp.dest(dest.lib));
 });
 
-gulp.task('lib:build', gulp.series('lib:clear', 'lib:compile'));
+gulp.task('lib:minify', function(done) {
+  shell.exec('npm run prepublish', done);
+});
+
+gulp.task('lib:build', gulp.series('lib:clear', 'lib:compile', 'lib:minify'));
 
 gulp.task('lib:watch', function() {
-  $.watch(src.lib, gulp.series('lib:compile'));
+  $.watch(src.lib, gulp.series('lib:build'));
 });
 
 /*---------------------------------- HTML -----------------------------------*/

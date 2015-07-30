@@ -148,3 +148,8 @@ a `DOMContentLoaded` listener, and your React widgets will render just fine.
 
 Doesn't work out of the box with Angular and Polymer due to how their bootstrap
 process works. Please let me know if you find any workarounds.
+
+## ToDo
+
+Investigate if it's possible to get the final URL of an XHR after a server
+redirect.
