@@ -2,6 +2,10 @@
 
 declare const module: any;
 interface Window {simplePjaxConfig: any}
+// We're using the recently standardised responseURL property to get the last
+// URL fetched by the request in case of redirects, and fall back to link hrefs
+// in unsupporting browsers.
+interface XMLHttpRequest {responseURL?: string}
 
 !function() {
   'use strict';
@@ -105,7 +109,7 @@ interface Window {simplePjaxConfig: any}
       }
 
       if (isPush) {
-        history.pushState(null, newDocument.title, href);
+        history.pushState(null, newDocument.title, xhr.responseURL || href);
         rememberPath();
       }
 
@@ -127,7 +131,7 @@ interface Window {simplePjaxConfig: any}
 
     xhr.onabort = xhr.onerror = xhr.ontimeout = function() {
       currentXhr = null;
-      if (isPush) history.pushState(null, '', href);
+      if (isPush) history.pushState(null, '', xhr.responseURL || href);
       location.reload();
     };
 

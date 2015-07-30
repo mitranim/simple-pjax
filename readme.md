@@ -152,4 +152,5 @@ process works. Please let me know if you find any workarounds.
 ## ToDo
 
 Investigate if it's possible to get the final URL of an XHR after a server
-redirect.
+redirect without using `responseURL`, which is still not supported in Safari 8.0
+and IE 11.

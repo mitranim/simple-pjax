@@ -1,13 +1,14 @@
 {
   "name": "simple-pjax",
-  "version": "0.0.14",
+  "version": "0.0.15",
   "main": "lib/simple-pjax.js",
   "scripts": {
     "gulp": "gulp",
     "start": "gulp",
-    "prepublish": "uglifyjs lib/simple-pjax.js > lib/simple-pjax.min.js -m --lint",
-    "build-prod": "gulp build --prod && npm run prepublish && node ./bundle --prod",
+    "minify": "uglifyjs lib/simple-pjax.js > lib/simple-pjax.min.js -m --lint",
+    "build-prod": "gulp build --prod && node ./bundle --prod",
     "serve-prod": "npm run build-prod && gulp server",
+    "prepublish": "npm run build-prod",
     "push": "npm run build-prod && (cd gh-pages && git add -A . && git commit -a -m autocommit && git push origin gh-pages)"
   },
   "description": "Zero-configuration PJAX for typical websites",

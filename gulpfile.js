@@ -101,7 +101,7 @@ gulp.task('lib:compile', function() {
 });
 
 gulp.task('lib:minify', function(done) {
-  shell.exec('npm run prepublish', done);
+  shell.exec('npm run minify', done);
 });
 
 gulp.task('lib:build', gulp.series('lib:clear', 'lib:compile', 'lib:minify'));
