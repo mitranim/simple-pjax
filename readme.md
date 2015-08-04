@@ -72,8 +72,9 @@ Works automatically. When navigating between internal pages, the library
 prevents a full page reload. Instead, it fetches the new document by ajax and
 replaces the contents of the current document.
 
-After replacing the document, it executes any _new_ and _inline_ scripts found
-in it. Ignores scripts that have been previously downloaded.
+After replacing the document, it executes any _inline_ scripts found in it.
+Ignores scripts with an `src` under the assumption that all pages have the same
+set of scripts, and they have already been downloaded.
 
 Affects both `<a>` clicks and `popstate` history events, such as when the back
 button is clicked.

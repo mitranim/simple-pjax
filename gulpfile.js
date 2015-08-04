@@ -7,14 +7,15 @@
 
 /******************************* Dependencies ********************************/
 
-var $      = require('gulp-load-plugins')();
-var bsync  = require('browser-sync').create();
-var gulp   = require('gulp');
-var hjs    = require('highlight.js');
-var marked = require('gulp-marked/node_modules/marked');
-var flags  = require('yargs').argv;
-var pt     = require('path');
-var shell  = require('shelljs');
+var $       = require('gulp-load-plugins')();
+var bsync   = require('browser-sync').create();
+var gulp    = require('gulp');
+var hjs     = require('highlight.js');
+var marked  = require('gulp-marked/node_modules/marked');
+var flags   = require('yargs').argv;
+var pt      = require('path');
+var shell   = require('shelljs');
+var webpack = require('webpack');
 
 /********************************** Globals **********************************/
 
@@ -22,8 +23,9 @@ var src = {
   lib: 'src/simple-pjax.ts',
   docHtml: 'src-docs/html/**/*',
   docScripts: 'src-docs/scripts/**/*.js',
-  docStylesCore: 'src-docs/styles/app.scss',
+  docScriptsCore: 'src-docs/scripts/app.js',
   docStyles: 'src-docs/styles/**/*.scss',
+  docStylesCore: 'src-docs/styles/app.scss',
   docImages: 'src-docs/images/**/*',
   docFonts: 'node_modules/font-awesome/fonts/**/*'
 };
@@ -165,38 +167,68 @@ gulp.task('docs:html:watch', function() {
   $.watch(src.docHtml, gulp.series('docs:html:build', reload));
 });
 
-/*--------------------------------- Scripts ---------------------------------*/
+/* -------------------------------- Scripts ---------------------------------*/
 
-gulp.task('docs:scripts:clear', function() {
-  return gulp.src(dest.docScripts, {read: false, allowEmpty: true})
-    .pipe($.plumber())
-    .pipe($.rimraf());
-});
+gulp.task('docs:scripts:build', function (done) {
+  var alias = {
+    'stylific': 'stylific/lib/stylific.min',
+    'simple-pjax': pt.join(process.cwd(), 'lib/simple-pjax.min')
+  };
+  if (prod()) alias.react = 'react/dist/react.min';
 
-gulp.task('docs:scripts:compile', function() {
-  return gulp.src(src.docScripts)
-    .pipe($.plumber())
-    .pipe($.babel({
-      modules: 'system',
-      optional: [
-        'spec.protoToAssign',
-        'es7.classProperties',
-        'es7.decorators',
-        'es7.functionBind',
-        'validation.undeclaredVariableCheck'
-      ],
-      loose: [
-        'es6.classes',
-        'es6.properties.computed',
-        'es6.forOf'
+  webpack({
+    entry: './' + src.docScriptsCore,
+    output: {
+      path: pt.join(process.cwd(), dest.docHtml),
+      filename: 'app.js'
+    },
+    resolve: {
+      alias: alias
+    },
+    module: {
+      loaders: [
+        {
+          test: /\.jsx?$/,
+          exclude: /(node_modules|bower_components)/,
+          loader: 'babel',
+          query: {
+            modules: 'common',
+            optional: [
+              'spec.protoToAssign',
+              'es7.classProperties',
+              'es7.decorators',
+              'es7.functionBind',
+              'validation.undeclaredVariableCheck'
+            ],
+            loose: [
+              'es6.classes',
+              'es6.properties.computed',
+              'es6.forOf'
+            ]
+          }
+        }
       ]
-    }))
-    .pipe(gulp.dest(dest.docScripts));
+    },
+    plugins: prod() ? [new webpack.optimize.UglifyJsPlugin()] : []
+  }, function (err, stats) {
+    if (err) {
+      throw new Error(err);
+    } else {
+      var report = stats.toString({
+        colors: true,
+        chunks: false,
+        timings: false,
+        version: false,
+        hash: false,
+        assets: false
+      });
+      if (report) console.log(report);
+    }
+    done();
+  });
 });
 
-gulp.task('docs:scripts:build', gulp.series('docs:scripts:clear', 'docs:scripts:compile'));
-
-gulp.task('docs:scripts:watch', function() {
+gulp.task('docs:scripts:watch', function () {
   $.watch(src.docScripts, gulp.series('docs:scripts:build', reload));
 });
 
@@ -272,19 +304,9 @@ gulp.task('server', function() {
   return bsync.init({
     startPath: '/simple-pjax/',
     server: {
-      baseDir: './',
+      baseDir: dest.docHtml,
       middleware: function(req, res, next) {
         req.url = req.url.replace(/^\/simple-pjax\//, '').replace(/^[/]*/, '/');
-
-        if (/node_modules/.test(req.url) || /bower_components/.test(req.url) ||
-            /gh-pages/.test(req.url) || /lib/.test(req.url) || /system\.config\.js/.test(req.url)) {
-          next();
-          return;
-        }
-
-        if (req.url === '/') req.url = 'index.html';
-        req.url = '/' + pt.join(dest.docHtml, req.url);
-
         next();
       }
     },
@@ -300,12 +322,12 @@ gulp.task('server', function() {
 /*--------------------------------- Default ---------------------------------*/
 
 gulp.task('build', gulp.parallel(
-  'lib:build', 'docs:html:build', 'docs:scripts:build', 'docs:styles:build',
-  'docs:images:build', 'docs:fonts:build'
+  gulp.series('lib:build', 'docs:scripts:build'), 'docs:html:build',
+  'docs:styles:build', 'docs:images:build', 'docs:fonts:build'
 ));
 
 gulp.task('watch', gulp.parallel(
-  'lib:watch', 'docs:html:watch', 'docs:scripts:watch', 'docs:styles:watch',
+  'lib:watch', 'docs:scripts:watch', 'docs:html:watch', 'docs:styles:watch',
   'docs:images:watch', 'docs:fonts:watch'
 ));
 

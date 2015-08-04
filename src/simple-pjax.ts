@@ -41,9 +41,6 @@ interface XMLHttpRequest {responseURL?: string}
   let lastQuery: string;
   rememberPath();
 
-  // Scripts that have already been downloaded by the browser by src.
-  const scripts = Object.create(null);
-
   document.addEventListener('click', event => {
     // Find a clicked <a>. No-op if no anchor is available.
     let anchor = <HTMLAnchorElement>event.target;
@@ -85,6 +82,7 @@ interface XMLHttpRequest {responseURL?: string}
     // Must capture href now because it may mysteriously change later if
     // document parsing fails.
     const href = urlUtil.href;
+    const path = urlUtil.protocol + '//' + urlUtil.host + urlUtil.pathname;
 
     // No-op if the URL is identical.
     if (isPush && (href === location.href)) return;
@@ -109,7 +107,9 @@ interface XMLHttpRequest {responseURL?: string}
       }
 
       if (isPush) {
-        history.pushState(null, newDocument.title, xhr.responseURL || href);
+        const replacementHref = xhr.responseURL && (xhr.responseURL !== path) ?
+                                xhr.responseURL : href;
+        history.pushState(null, newDocument.title, replacementHref);
         rememberPath();
       }
 
@@ -120,8 +120,16 @@ interface XMLHttpRequest {responseURL?: string}
       const target = location.hash ? document.getElementById(location.hash.slice(1)) : null;
       if (target instanceof HTMLElement) {
         target.scrollIntoView();
-      } else if (isPush && (!(urlUtil instanceof HTMLElement) || !urlUtil.hasAttribute('data-noscroll'))) {
-        window.scrollTo(0, 0);
+      } else if (isPush) {
+        if (urlUtil instanceof HTMLElement && !urlUtil.hasAttribute('data-noscroll')) {
+          if (urlUtil.hasAttribute('data-scroll-to-id')) {
+            const id = urlUtil.getAttribute('data-scroll-to-id');
+            const elem = document.getElementById(id);
+            if (elem) elem.scrollIntoView();
+          } else {
+            window.scrollTo(0, 0);
+          }
+        }
       }
 
       // Provide a hook for scripts that may want to run when the document
@@ -174,8 +182,7 @@ interface XMLHttpRequest {responseURL?: string}
 
   function replaceDocument(doc: HTMLDocument): void {
     document.title = doc.title;
-    registerExistingScripts();
-    removeKnownScripts(doc);
+    removeScriptsWithSrc(doc);
     // Remove scripts from the new document before replacing the body. There's
     // an inconsistency between Blink and Webkit: Blink will ignore these
     // scripts, but Webkit will execute them when the body is replaced. To avoid
@@ -185,16 +192,9 @@ interface XMLHttpRequest {responseURL?: string}
     replacePlaceholdersWithScripts(pairs);
   }
 
-  function registerExistingScripts(): void {
-    for (let i = 0; i < document.scripts.length; ++i) {
-      const script = <HTMLScriptElement>document.scripts[i];
-      if (script.src) scripts[script.src] = null;
-    }
-  }
-
-  function removeKnownScripts(doc: HTMLDocument): void {
+  function removeScriptsWithSrc(doc: HTMLDocument): void {
     [].slice.call(doc.scripts).forEach(function(script) {
-      if (script.src in scripts && !!script.parentNode) {
+      if (!!script.src && !!script.parentNode) {
         script.parentNode.removeChild(script);
       }
     });
