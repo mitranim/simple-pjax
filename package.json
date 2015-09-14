@@ -1,6 +1,6 @@
 {
   "name": "simple-pjax",
-  "version": "0.0.16",
+  "version": "0.1.0",
   "main": "lib/simple-pjax.js",
   "scripts": {
     "gulp": "gulp",
@@ -9,7 +9,7 @@
     "build-prod": "gulp build --prod",
     "serve-prod": "npm run build-prod && gulp server",
     "prepublish": "gulp lib:build",
-    "push": "npm run build-prod && (cd gh-pages && git add -A . && git commit -a -m autocommit && git push origin gh-pages)"
+    "push-docs": "npm run build-prod && (cd gh-pages && git add -A . && git commit -a -m autocommit && git push origin gh-pages)"
   },
   "description": "Zero-configuration PJAX for typical websites",
   "authors": [

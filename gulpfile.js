@@ -99,6 +99,7 @@ gulp.task('lib:compile', function() {
   return gulp.src(src.lib)
     .pipe($.plumber())
     .pipe($.typescript({target: 'ES5'}))
+    .pipe($.replace(/^/, '"format cjs";\n'))
     .pipe(gulp.dest(dest.lib));
 });
 
@@ -172,7 +173,7 @@ gulp.task('docs:html:watch', function() {
 gulp.task('docs:scripts:build', function (done) {
   var alias = {
     'stylific': 'stylific/lib/stylific.min',
-    'simple-pjax': pt.join(process.cwd(), 'lib/simple-pjax.min')
+    'simple-pjax': pt.join(process.cwd(), 'lib/simple-pjax')
   };
   if (prod()) alias.react = 'react/dist/react.min';
 

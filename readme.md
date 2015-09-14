@@ -115,11 +115,11 @@ link:
 <a href="/other-page" data-noscroll>clicking me doesn't scroll the page!</a>
 ```
 
-If you want to force page reload when clicking a given link, add the
-`data-force-reload` attribute:
+If you want an individual link without pjax behaviour, add the `data-no-pjax`
+attribute (changed from `data-force-reload` in `0.1.0`):
 
 ```html
-<a href="/other-page" data-force-reload>clicking me always reloads the page!</a>
+<a href="/other-page" data-no-pjax>I have native behaviour!</a>
 ```
 
 ## Gotchas
