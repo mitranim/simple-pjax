@@ -8,9 +8,9 @@
 
 ## Description
 
-Zero-configuration library that improves page loading times for classic
-multi-page websites. Gives them some of the advantages enjoyed by SPA
-(single-page apps).
+Lean library that improves page loading times for classic multi-page websites.
+Gives them some of the advantages enjoyed by SPA (single-page apps).
+Configuration is optional.
 
 See a simple demo at http://mitranim.com/simple-pjax/.
 
@@ -50,7 +50,7 @@ Grab through your favourite package manager:
 
 ```sh
 npm i --save-dev simple-pjax
-jspm install github:Mitranim/simple-pjax
+jspm install npm:simple-pjax
 bower i --save Mitranim/simple-pjax
 ```
 
@@ -89,7 +89,7 @@ indicator.
 configuration object. In the presense of a CommonJS-compliant module system, the
 config is exported; otherwise it's assigned to `window.simplePjaxConfig`.
 
-Example config.
+Example config (see defaults in [source](src/simple-pjax.ts)).
 
 ```javascript
 import config from 'simple-pjax';
@@ -106,9 +106,19 @@ config.onIndicateLoadStart = function() {
 config.onIndicateLoadEnd = function() {
   document.documentElement.style.opacity = null;
 };
+
+// If a selector string is provided, it's checked every time when scrolling
+// to an element (e.g. via data-scroll-to-id). If an element with the
+// {position: 'fixed', top: '0px'} computed style properties is found, the
+// scroll position will be offset by that element's height.
+config.scrollOffsetSelector = '.navbar-fixed';
+
+// If a string is provided, it will be used as the default value (default
+// element `id`) for the `[data-scroll-to-id]` attribute.
+config.defaultMainId = 'mainView';
 ```
 
-You can prevent page scrolling by adding the `data-noscroll` attribute to a
+You can prevent page scroll by adding the `data-noscroll` attribute to a
 link:
 
 ```html
@@ -116,7 +126,7 @@ link:
 ```
 
 If you want an individual link without pjax behaviour, add the `data-no-pjax`
-attribute (changed from `data-force-reload` in `0.1.0`):
+attribute:
 
 ```html
 <a href="/other-page" data-no-pjax>I have native behaviour!</a>

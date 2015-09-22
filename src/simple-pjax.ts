@@ -21,14 +21,26 @@ interface XMLHttpRequest {responseURL?: string}
   // Configuration.
   const config = {
     loadIndicatorDelay: 250,
+    // Called when loading takes longer than `loadIndicatorDelay`. Should
+    // visibly indicate the loading.
     onIndicateLoadStart() {
       document.documentElement.style.transition = 'opacity linear 0.05s';
       document.documentElement.style.opacity = '0.8';
     },
+    // Called when transition is finished. Should roll back the effects of
+    // `onIndicateLoadStart`.
     onIndicateLoadEnd() {
       document.documentElement.style.transition = null;
       document.documentElement.style.opacity = null;
-    }
+    },
+    // If a selector string is provided, it's checked every time when scrolling
+    // to an element (e.g. via data-scroll-to-id). If an element with the
+    // {position: 'fixed', top: '0px'} computed style properties is found, the
+    // scroll position will be offset by that element's height.
+    scrollOffsetSelector: null,
+    // If a string is provided, it will be used as the default id for the
+    // `[data-scroll-to-id]` attribute.
+    defaultMainId: null
   };
 
   // Current request. Only one can be active at a time.
@@ -113,11 +125,12 @@ interface XMLHttpRequest {responseURL?: string}
 
       /*
        * Workaround for a Safari glitch. In Safari, if the document has been
-       * scrolled before the transition, and it has any fixed-positioned
-       * elements, if we only scroll _after_ replacing the document, these
-       * elements will jump around for a moment. To avoid this, we basically
+       * scrolled down by the user before the transition, and if it has any
+       * fixed-positioned elements, these elements will jump around for a
+       * moment after completing a pjax transition. This happens if we only
+       * scroll _after_ replacing the document. To avoid this, we basically
        * have to scroll twice: before and after the transition. This doesn't
-       * eliminate the problem completely, but prevents many common cases.
+       * eliminate the problem, but makes it less frequent.
        *
        * Safari truly is the new IE.
        */
@@ -130,14 +143,18 @@ interface XMLHttpRequest {responseURL?: string}
         if (urlUtil.hasAttribute('data-noscroll')) {
           noScroll = true;
         } else if (urlUtil.hasAttribute('data-scroll-to-id')) {
-          targetId = urlUtil.getAttribute('data-scroll-to-id');
+          targetId = urlUtil.getAttribute('data-scroll-to-id') ||
+                     typeof config.defaultMainId === 'string' && config.defaultMainId;
         }
       }
 
       // First scroll: before the transition.
       let target = document.getElementById(targetId);
-      if (target) target.scrollIntoView();
-      else if (!noScroll) window.scrollTo(0, 0);
+      if (target) {
+        target.scrollIntoView();
+        offsetScroll();
+      }
+      else if (!targetId && !noScroll) window.scrollTo(0, 0);
 
       // Switch to the new document.
       replaceDocument(newDocument);
@@ -145,7 +162,16 @@ interface XMLHttpRequest {responseURL?: string}
 
       // Second scroll: after the transition.
       target = document.getElementById(targetId);
-      if (target) target.scrollIntoView();
+      if (target) {
+        // This has to happen in a separate frame in order to give JavaScript
+        // components a change to alter the document and give the browser an
+        // opportunity to repaint. This way, the scroll position will be more
+        // accurate.
+        requestAnimationFrame(() => {
+          target.scrollIntoView();
+          offsetScroll();
+        });
+      }
       else if (!noScroll) window.scrollTo(0, 0);
 
       // Provide a hook for scripts that may want to run when the document
@@ -277,5 +303,16 @@ interface XMLHttpRequest {responseURL?: string}
     const event = document.createEvent('Event');
     event.initEvent(name, true, true);
     return event;
+  }
+
+  // See config.scrollOffsetSelector.
+  function offsetScroll(): void {
+    if (typeof config.scrollOffsetSelector === 'string' && config.scrollOffsetSelector) {
+      const elem = document.querySelector(config.scrollOffsetSelector);
+      const style = getComputedStyle(elem);
+      if (style.position === 'fixed' && style.top === '0px') {
+        window.scrollBy(0, -elem.getBoundingClientRect().height);
+      }
+    }
   }
 }();
