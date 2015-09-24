@@ -4,6 +4,7 @@
 * [Installation](#installation)
 * [Usage](#usage)
 * [Configuration](#configuration)
+* [Methods](#methods)
 * [Gotchas](#gotchas)
 
 ## Description
@@ -131,6 +132,27 @@ attribute:
 
 ```html
 <a href="/other-page" data-no-pjax>I have native behaviour!</a>
+```
+
+By default, links to the same page are ignored. If you want to force a page
+refresh, add the `data-force-reload` attribute. This reload doesn't affect
+scroll position:
+
+```html
+<a href="/current-page" data-force-reload>I sneakily refresh the page when clicked!</a>
+```
+
+## Methods
+
+simple-pjax exports one simple method that sneakily refreshes the current page,
+as if you clicked a `<a>` leading to this page. The refresh is done through pjax
+and doesn't destroy the JS runtime and other assets. It also doesn't affect
+scroll position.
+
+```js
+import pjax from 'simple-pjax';
+
+pjax.reload();
 ```
 
 ## Gotchas

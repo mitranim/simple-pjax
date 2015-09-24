@@ -101,21 +101,31 @@ gulp.task('lib:compile', function() {
   return gulp.src(src.libTs)
     .pipe($.plumber())
     .pipe($.typescript({
-      target: 'ES3',
-      module: 'commonjs'
+      target: 'ES3'
     }))
-    .pipe($.replace(/^/, '"format cjs";\n'))
+    .pipe($.wrap(
+`'format cjs';
+
+!function() {
+    'use strict';
+
+    // No-op if not running in a browser.
+    if (typeof window !== 'object' || !window) return;
+
+    // No-op if pushState is unavailable.
+    if (typeof history.pushState !== 'function') return;
+
+    // If not running in CommonJS, expose configuration object to window.
+    if ((typeof module === 'undefined' || typeof module !== 'object' || module === null)
+        || module.exports === null || typeof module.exports !== 'object') {
+      window.simplePjax = pjax;
+    }
+
+<%= contents %>
+}();`))
     .pipe($.rename(`${filename}.js`))
     .pipe(gulp.dest(dest.lib));
 });
-
-// gulp.task('lib:global', function() {
-//   return gulp.src(src.libJs)
-//     .pipe($.replace(/^/, ``))
-//     .pipe($.replace(/$/, ``))
-//     .pipe($.rename(`${filename}.global.js`))
-//     .pipe(gulp.dest(dest.lib));
-// });
 
 gulp.task('lib:minify', function() {
   return gulp.src(src.libJs)
@@ -127,7 +137,7 @@ gulp.task('lib:minify', function() {
     .pipe(gulp.dest(dest.lib));
 });
 
-gulp.task('lib:build', gulp.series('lib:clear', 'lib:compile', /* 'lib:global', */ 'lib:minify'));
+gulp.task('lib:build', gulp.series('lib:clear', 'lib:compile', 'lib:minify'));
 
 gulp.task('lib:watch', function() {
   $.watch(src.libTs, gulp.series('lib:build'));
