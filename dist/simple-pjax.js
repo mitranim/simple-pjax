@@ -18,6 +18,9 @@ var pjax = {
     /**
      * Configuration.
      */
+    // Disables pjax globally.
+    disabled: false,
+    // How long until we run loading indicators.
     loadIndicatorDelay: 250,
     // Called when loading takes longer than `loadIndicatorDelay`. Should
     // visibly indicate the loading.
@@ -100,6 +103,9 @@ var Config = (function () {
 })();
 // Main listener.
 document.addEventListener('click', function (event) {
+    // No-op if pjax is disabled.
+    if (pjax.disabled)
+        return;
     // Find a clicked <a>. No-op if no anchor is available.
     var anchor = event.target;
     do {

@@ -17,24 +17,32 @@ const pjax = {
    * Configuration.
    */
 
+  // Disables pjax globally.
+  disabled: false,
+
+  // How long until we run loading indicators.
   loadIndicatorDelay: 250,
+
   // Called when loading takes longer than `loadIndicatorDelay`. Should
   // visibly indicate the loading.
   onIndicateLoadStart() {
     document.documentElement.style.transition = 'opacity linear 0.05s';
     document.documentElement.style.opacity = '0.8';
   },
+
   // Called when transition is finished. Should roll back the effects of
   // `onIndicateLoadStart`.
   onIndicateLoadEnd() {
     document.documentElement.style.transition = null;
     document.documentElement.style.opacity = null;
   },
+
   // If a selector string is provided, it's checked every time when scrolling
   // to an element (e.g. via data-scroll-to-id). If an element with the
   // {position: 'fixed', top: '0px'} computed style properties is found, the
   // scroll position will be offset by that element's height.
   scrollOffsetSelector: null,
+
   // If a string is provided, it will be used as the default id for the
   // `[data-scroll-to-id]` attribute.
   defaultMainId: null,
@@ -106,6 +114,9 @@ class Config {
 
 // Main listener.
 document.addEventListener('click', event => {
+  // No-op if pjax is disabled.
+  if (pjax.disabled) return;
+
   // Find a clicked <a>. No-op if no anchor is available.
   let anchor = <HTMLAnchorElement>event.target;
   do {
