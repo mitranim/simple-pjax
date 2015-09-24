@@ -9,6 +9,7 @@
 
 const $       = require('gulp-load-plugins')();
 const bsync   = require('browser-sync').create();
+const del     = require('del');
 const gulp    = require('gulp');
 const hjs     = require('highlight.js');
 const marked  = require('gulp-marked/node_modules/marked');
@@ -91,10 +92,8 @@ marked.Renderer.prototype.link = function(href, title, text) {
 
 /*----------------------------------- Lib -----------------------------------*/
 
-gulp.task('lib:clear', function() {
-  return gulp.src(dest.lib, {read: false, allowEmpty: true})
-    .pipe($.plumber())
-    .pipe($.rimraf());
+gulp.task('lib:clear', function(done) {
+  del(dest.lib).then((_) => {done()});
 });
 
 gulp.task('lib:compile', function() {
@@ -114,12 +113,6 @@ gulp.task('lib:compile', function() {
 
     // No-op if pushState is unavailable.
     if (typeof history.pushState !== 'function') return;
-
-    // If not running in CommonJS, expose configuration object to window.
-    if ((typeof module === 'undefined' || typeof module !== 'object' || module === null)
-        || module.exports === null || typeof module.exports !== 'object') {
-      window.simplePjax = pjax;
-    }
 
 <%= contents %>
 }();`))
@@ -145,10 +138,8 @@ gulp.task('lib:watch', function() {
 
 /*---------------------------------- HTML -----------------------------------*/
 
-gulp.task('docs:html:clear', function() {
-  return gulp.src(dest.docHtml + '/**/*.html', {read: false, allowEmpty: true})
-    .pipe($.plumber())
-    .pipe($.rimraf());
+gulp.task('docs:html:clear', function(done) {
+  del(dest.docHtml + '/**/*.html').then((_) => {done()});
 });
 
 gulp.task('docs:html:compile', function() {
@@ -200,7 +191,7 @@ gulp.task('docs:html:watch', function() {
 
 /* -------------------------------- Scripts ---------------------------------*/
 
-gulp.task('docs:scripts:build', function (done) {
+gulp.task('docs:scripts:build', function(done) {
   var alias = {
     'stylific': 'stylific/lib/stylific.min',
     'simple-pjax': pt.join(process.cwd(), src.libJs)
@@ -265,10 +256,8 @@ gulp.task('docs:scripts:watch', function () {
 
 /*--------------------------------- Styles ----------------------------------*/
 
-gulp.task('docs:styles:clear', function() {
-  return gulp.src(dest.docStyles, {read: false, allowEmpty: true})
-    .pipe($.plumber())
-    .pipe($.rimraf());
+gulp.task('docs:styles:clear', function(done) {
+  del(dest.docStyles).then((_) => {done()});
 });
 
 gulp.task('docs:styles:compile', function() {
@@ -295,10 +284,8 @@ gulp.task('docs:styles:watch', function() {
 
 /*--------------------------------- Images ----------------------------------*/
 
-gulp.task('docs:images:clear', function() {
-  return gulp.src(dest.docImages, {read: false, allowEmpty: true})
-    .pipe($.plumber())
-    .pipe($.rimraf());
+gulp.task('docs:images:clear', function(done) {
+  del(dest.docImages).then((_) => {done()});
 });
 
 gulp.task('docs:images:copy', function() {
@@ -315,8 +302,8 @@ gulp.task('docs:images:watch', function() {
 
 /*---------------------------------- Fonts ----------------------------------*/
 
-gulp.task('docs:fonts:clear', function() {
-  return gulp.src(dest.docFonts, {read: false, allowEmpty: true}).pipe($.rimraf());
+gulp.task('docs:fonts:clear', function(done) {
+  del(dest.docFonts).then((_) => {done()});
 });
 
 gulp.task('docs:fonts:copy', function() {

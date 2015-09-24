@@ -1,13 +1,17 @@
 declare const module: any;
+interface Window {simplePjax: any}
 // We're using the recently standardised responseURL property to get the last
 // URL fetched by the request in case of redirects, and fall back to link hrefs
 // in unsupporting browsers.
 interface XMLHttpRequest {responseURL?: string}
 
+const isCommonJs = typeof module === 'object' && module !== null &&
+                 typeof module.exports === 'object' && module.exports !== null;
+
 /**
  * Export.
  */
-const pjax = module.exports = {
+const pjax = {
 
   /**
    * Configuration.
@@ -48,6 +52,10 @@ const pjax = module.exports = {
     }));
   }
 };
+
+// Export in a CommonJS environment, otherwise assign to window.
+if (isCommonJs) module.exports = pjax;
+else window.simplePjax = pjax;
 
 // Current request. Only one can be active at a time.
 let currentXhr: XMLHttpRequest;

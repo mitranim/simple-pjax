@@ -9,16 +9,12 @@
     // No-op if pushState is unavailable.
     if (typeof history.pushState !== 'function') return;
 
-    // If not running in CommonJS, expose configuration object to window.
-    if ((typeof module === 'undefined' || typeof module !== 'object' || module === null)
-        || module.exports === null || typeof module.exports !== 'object') {
-      window.simplePjax = pjax;
-    }
-
+var isCommonJs = typeof module === 'object' && module !== null &&
+    typeof module.exports === 'object' && module.exports !== null;
 /**
  * Export.
  */
-var pjax = module.exports = {
+var pjax = {
     /**
      * Configuration.
      */
@@ -55,6 +51,11 @@ var pjax = module.exports = {
         }));
     }
 };
+// Export in a CommonJS environment, otherwise assign to window.
+if (isCommonJs)
+    module.exports = pjax;
+else
+    window.simplePjax = pjax;
 // Current request. Only one can be active at a time.
 var currentXhr;
 // Current pathname and query, used to detect useless popstate events.
