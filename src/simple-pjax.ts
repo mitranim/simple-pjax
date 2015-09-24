@@ -155,7 +155,7 @@ window.addEventListener('popstate', () => {
 
 function transitionTo(config: Config): void {
   // No-op if the URL is identical, unless a reload was intended.
-  if (config.isPush && (config.href === location.href) && 'data-force-reload' in config) return;
+  if (config.isPush && (config.href === location.href) && !('data-force-reload' in config)) return;
 
   // No-op if a request is currently in progress.
   if (!!currentXhr) return;

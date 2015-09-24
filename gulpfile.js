@@ -133,7 +133,7 @@ gulp.task('lib:minify', function() {
 gulp.task('lib:build', gulp.series('lib:clear', 'lib:compile', 'lib:minify'));
 
 gulp.task('lib:watch', function() {
-  $.watch(src.libTs, gulp.series('lib:build'));
+  $.watch(src.libTs, gulp.series('lib:build', reload));
 });
 
 /*---------------------------------- HTML -----------------------------------*/
