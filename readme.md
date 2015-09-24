@@ -57,7 +57,7 @@ bower i --save Mitranim/simple-pjax
 Import in your code:
 
 ```javascript
-import 'simple-pjax';
+import pjax from 'simple-pjax';
 ```
 
 Or include as a script tag:
@@ -85,25 +85,26 @@ indicator.
 
 ## Configuration
 
-`simple-pjax` works with zero configuration, but it also exposes a mutable
-configuration object. In the presense of a CommonJS-compliant module system, the
-config is exported; otherwise it's assigned to `window.simplePjaxConfig`.
+`simple-pjax` works with zero configuration, but it also exports an object with
+configurable properties and useful methods. In the presense of a
+CommonJS-compliant module system, it does a proper export; otherwise the object
+is assigned to `window.simplePjax`.
 
 Example config (see defaults in [source](src/simple-pjax.ts)).
 
 ```javascript
-import config from 'simple-pjax';
+import pjax from 'simple-pjax';
 
 // Timeout before calling the loading indicator function. Set to 0 to disable.
-config.indicateLoadAfter = 100;
+pjax.indicateLoadAfter = 100;
 
 // Called when loading takes a while. Use it to display a custom loading indicator.
-config.onIndicateLoadStart = function() {
+pjax.onIndicateLoadStart = function() {
   document.documentElement.style.opacity = 0.5;
 };
 
 // Called when loading ends. Use it to hide a custom loading indicator.
-config.onIndicateLoadEnd = function() {
+pjax.onIndicateLoadEnd = function() {
   document.documentElement.style.opacity = null;
 };
 
@@ -111,11 +112,11 @@ config.onIndicateLoadEnd = function() {
 // to an element (e.g. via data-scroll-to-id). If an element with the
 // {position: 'fixed', top: '0px'} computed style properties is found, the
 // scroll position will be offset by that element's height.
-config.scrollOffsetSelector = '.navbar-fixed';
+pjax.scrollOffsetSelector = '.navbar-fixed';
 
 // If a string is provided, it will be used as the default value (default
 // element `id`) for the `[data-scroll-to-id]` attribute.
-config.defaultMainId = 'mainView';
+pjax.defaultMainId = 'mainView';
 ```
 
 You can prevent page scroll by adding the `data-noscroll` attribute to a

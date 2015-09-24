@@ -1,11 +1,10 @@
 {
   "name": "simple-pjax",
-  "version": "0.1.2",
-  "main": "lib/simple-pjax.js",
+  "version": "0.2.0",
+  "main": "dist/simple-pjax.js",
   "scripts": {
     "gulp": "gulp",
     "start": "gulp",
-    "minify": "uglifyjs lib/simple-pjax.js > lib/simple-pjax.min.js -m --lint",
     "build-prod": "gulp build --prod",
     "serve-prod": "npm run build-prod && gulp server",
     "prepublish": "gulp lib:build",
@@ -42,12 +41,11 @@
     "gulp-sass": "^2.0.4",
     "gulp-statil": "0.0.4",
     "gulp-typescript": "^2.8.0",
+    "gulp-uglify": "^1.4.1",
     "gulp-watch": "^4.3.3",
     "highlight.js": "^8.6.0",
     "react": "^0.13.3",
-    "shelljs": "^0.5.1",
     "stylific": "0.8.3",
-    "uglify-js": "^2.4.23",
     "webpack": "^1.10.5",
     "yargs": "^3.15.0"
   }

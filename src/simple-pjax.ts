@@ -19,7 +19,7 @@ interface XMLHttpRequest {responseURL?: string}
   const location = window.location;
 
   // Configuration.
-  const config = {
+  const pjax = {
     loadIndicatorDelay: 250,
     // Called when loading takes longer than `loadIndicatorDelay`. Should
     // visibly indicate the loading.
@@ -40,7 +40,17 @@ interface XMLHttpRequest {responseURL?: string}
     scrollOffsetSelector: null,
     // If a string is provided, it will be used as the default id for the
     // `[data-scroll-to-id]` attribute.
-    defaultMainId: null
+    defaultMainId: null,
+
+    /*
+     * Methods.
+     */
+
+    // Reloads the current page in a "pjax" way, without destroying the
+    // JavaScript runtime and other assets.
+    reload({keepScrollPosition} = {keepScrollPosition: true}): void {
+      transitionTo(location, false, keepScrollPosition, true);
+    }
   };
 
   // Current request. Only one can be active at a time.
@@ -88,14 +98,17 @@ interface XMLHttpRequest {responseURL?: string}
     transitionTo(location, false);
   });
 
-  function transitionTo(urlUtil: HTMLAnchorElement|Location, isPush: boolean): void {
+  function transitionTo(
+    urlUtil: HTMLAnchorElement|Location, isPush: boolean,
+    keepScrollPosition: boolean = false, forceReload: boolean = false
+  ): void {
     // Must capture href now because it may mysteriously change later if
     // document parsing fails.
     const href = urlUtil.href;
     const path = urlUtil.protocol + '//' + urlUtil.host + urlUtil.pathname;
 
-    // No-op if the URL is identical.
-    if (isPush && (href === location.href)) return;
+    // No-op if the URL is identical, unless a reload was intended.
+    if (isPush && (href === location.href) && !forceReload) return;
 
     // No-op if a request is currently in progress.
     if (!!currentXhr) return;
@@ -137,14 +150,14 @@ interface XMLHttpRequest {responseURL?: string}
 
       // let target = location.hash ? newDocument.getElementById(location.hash.slice(1)) : null;
       let targetId = location.hash ? location.hash.slice(1) : null;
-      let noScroll = false;
+      let noScroll = keepScrollPosition || false;
 
       if (!targetId && isPush && urlUtil instanceof HTMLElement) {
-        if (urlUtil.hasAttribute('data-noscroll')) {
+        if (keepScrollPosition || urlUtil.hasAttribute('data-noscroll')) {
           noScroll = true;
         } else if (urlUtil.hasAttribute('data-scroll-to-id')) {
           targetId = urlUtil.getAttribute('data-scroll-to-id') ||
-                     typeof config.defaultMainId === 'string' && config.defaultMainId;
+                     typeof pjax.defaultMainId === 'string' && pjax.defaultMainId;
         }
       }
 
@@ -194,22 +207,22 @@ interface XMLHttpRequest {responseURL?: string}
   }
 
   function indicateLoadStart(xhr: XMLHttpRequest): void {
-    if (config.loadIndicatorDelay > 0) {
+    if (pjax.loadIndicatorDelay > 0) {
       const id = setTimeout(function() {
         if (xhr.readyState === 4) {
           clearTimeout(id);
           return;
         }
-        if (typeof config.onIndicateLoadStart === 'function') {
-          config.onIndicateLoadStart();
+        if (typeof pjax.onIndicateLoadStart === 'function') {
+          pjax.onIndicateLoadStart();
         }
-      }, config.loadIndicatorDelay);
+      }, pjax.loadIndicatorDelay);
     }
   }
 
   function indicateLoadEnd(): void {
-    if (config.loadIndicatorDelay > 0 && typeof config.onIndicateLoadEnd === 'function') {
-      config.onIndicateLoadEnd();
+    if (pjax.loadIndicatorDelay > 0 && typeof pjax.onIndicateLoadEnd === 'function') {
+      pjax.onIndicateLoadEnd();
     }
   }
 
@@ -292,9 +305,9 @@ interface XMLHttpRequest {responseURL?: string}
 
   // Expose configuration object.
   if (typeof module === 'object' && module && module.exports) {
-    module.exports = config;
+    module.exports = pjax;
   } else {
-    window.simplePjaxConfig = config;
+    window.simplePjaxConfig = pjax;
   }
 
   // IE compat: IE doesn't support dispatching events created with constructors,
@@ -305,10 +318,10 @@ interface XMLHttpRequest {responseURL?: string}
     return event;
   }
 
-  // See config.scrollOffsetSelector.
+  // See pjax.scrollOffsetSelector.
   function offsetScroll(): void {
-    if (typeof config.scrollOffsetSelector === 'string' && config.scrollOffsetSelector) {
-      const elem = document.querySelector(config.scrollOffsetSelector);
+    if (typeof pjax.scrollOffsetSelector === 'string' && pjax.scrollOffsetSelector) {
+      const elem = document.querySelector(pjax.scrollOffsetSelector);
       const style = getComputedStyle(elem);
       if (style.position === 'fixed' && style.top === '0px') {
         window.scrollBy(0, -elem.getBoundingClientRect().height);

@@ -1,5 +1,11 @@
-node_modules
-lib/simple-pjax.min.js
+# Commonly ignored files
 *.log
-notes.md
+.DS_Store
+
+# Folders
+node_modules
 gh-pages
+
+# Built files
+dist/simple-pjax.min.js
+notes.md

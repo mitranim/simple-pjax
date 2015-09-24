@@ -7,20 +7,22 @@
 
 /******************************* Dependencies ********************************/
 
-var $       = require('gulp-load-plugins')();
-var bsync   = require('browser-sync').create();
-var gulp    = require('gulp');
-var hjs     = require('highlight.js');
-var marked  = require('gulp-marked/node_modules/marked');
-var flags   = require('yargs').argv;
-var pt      = require('path');
-var shell   = require('shelljs');
-var webpack = require('webpack');
+const $       = require('gulp-load-plugins')();
+const bsync   = require('browser-sync').create();
+const gulp    = require('gulp');
+const hjs     = require('highlight.js');
+const marked  = require('gulp-marked/node_modules/marked');
+const flags   = require('yargs').argv;
+const pt      = require('path');
+const webpack = require('webpack');
 
 /********************************** Globals **********************************/
 
-var src = {
-  lib: 'src/simple-pjax.ts',
+const filename = 'simple-pjax';
+
+const src = {
+  libTs: 'src/simple-pjax.ts',
+  libJs: `dist/${filename}.js`,
   docHtml: 'src-docs/html/**/*',
   docScripts: 'src-docs/scripts/**/*.js',
   docScriptsCore: 'src-docs/scripts/app.js',
@@ -30,10 +32,10 @@ var src = {
   docFonts: 'node_modules/font-awesome/fonts/**/*'
 };
 
-var destBase = 'gh-pages';
+const destBase = 'gh-pages';
 
-var dest = {
-  lib:        'lib',
+const dest = {
+  lib:       'dist',
   docHtml:    destBase,
   docScripts: destBase + '/scripts',
   docStyles:  destBase + '/styles',
@@ -57,14 +59,14 @@ function reload(done) {
  */
 
 // Default link renderer func.
-var linkDef = marked.Renderer.prototype.link;
+const linkDef = marked.Renderer.prototype.link;
 
 // Custom link renderer func that adds target="_blank" to links to other sites.
 // Mostly copied from the marked source.
 marked.Renderer.prototype.link = function(href, title, text) {
   if (this.options.sanitize) {
     try {
-      var prot = decodeURIComponent(unescape(href))
+      const prot = decodeURIComponent(unescape(href))
         .replace(/[^\w:]/g, '')
         .toLowerCase();
     } catch (e) {
@@ -74,7 +76,7 @@ marked.Renderer.prototype.link = function(href, title, text) {
       return '';
     }
   }
-  var out = '<a href="' + href + '"';
+  let out = '<a href="' + href + '"';
   if (title) {
     out += ' title="' + title + '"';
   }
@@ -96,21 +98,39 @@ gulp.task('lib:clear', function() {
 });
 
 gulp.task('lib:compile', function() {
-  return gulp.src(src.lib)
+  return gulp.src(src.libTs)
     .pipe($.plumber())
-    .pipe($.typescript({target: 'ES5'}))
+    .pipe($.typescript({
+      target: 'ES3',
+      module: 'commonjs'
+    }))
     .pipe($.replace(/^/, '"format cjs";\n'))
+    .pipe($.rename(`${filename}.js`))
     .pipe(gulp.dest(dest.lib));
 });
 
-gulp.task('lib:minify', function(done) {
-  shell.exec('npm run minify', done);
+// gulp.task('lib:global', function() {
+//   return gulp.src(src.libJs)
+//     .pipe($.replace(/^/, ``))
+//     .pipe($.replace(/$/, ``))
+//     .pipe($.rename(`${filename}.global.js`))
+//     .pipe(gulp.dest(dest.lib));
+// });
+
+gulp.task('lib:minify', function() {
+  return gulp.src(src.libJs)
+    .pipe($.uglify({
+      mangle: true,
+      lint: true
+    }))
+    .pipe($.rename(`${filename}.min.js`))
+    .pipe(gulp.dest(dest.lib));
 });
 
-gulp.task('lib:build', gulp.series('lib:clear', 'lib:compile', 'lib:minify'));
+gulp.task('lib:build', gulp.series('lib:clear', 'lib:compile', /* 'lib:global', */ 'lib:minify'));
 
 gulp.task('lib:watch', function() {
-  $.watch(src.lib, gulp.series('lib:build'));
+  $.watch(src.libTs, gulp.series('lib:build'));
 });
 
 /*---------------------------------- HTML -----------------------------------*/
@@ -173,7 +193,7 @@ gulp.task('docs:html:watch', function() {
 gulp.task('docs:scripts:build', function (done) {
   var alias = {
     'stylific': 'stylific/lib/stylific.min',
-    'simple-pjax': pt.join(process.cwd(), 'lib/simple-pjax')
+    'simple-pjax': pt.join(process.cwd(), src.libJs)
   };
   if (prod()) alias.react = 'react/dist/react.min';
 

@@ -11,7 +11,7 @@
     var document = window.document;
     var location = window.location;
     // Configuration.
-    var config = {
+    var pjax = {
         loadIndicatorDelay: 250,
         // Called when loading takes longer than `loadIndicatorDelay`. Should
         // visibly indicate the loading.
@@ -32,7 +32,16 @@
         scrollOffsetSelector: null,
         // If a string is provided, it will be used as the default id for the
         // `[data-scroll-to-id]` attribute.
-        defaultMainId: null
+        defaultMainId: null,
+        /*
+         * Methods.
+         */
+        // Reloads the current page in a "pjax" way, without destroying the
+        // JavaScript runtime and other assets.
+        reload: function (_a) {
+            var keepScrollPosition = (_a === void 0 ? { keepScrollPosition: true } : _a).keepScrollPosition;
+            transitionTo(location, false, keepScrollPosition, true);
+        }
     };
     // Current request. Only one can be active at a time.
     var currentXhr;
@@ -78,13 +87,15 @@
         rememberPath();
         transitionTo(location, false);
     });
-    function transitionTo(urlUtil, isPush) {
+    function transitionTo(urlUtil, isPush, keepScrollPosition, forceReload) {
+        if (keepScrollPosition === void 0) { keepScrollPosition = false; }
+        if (forceReload === void 0) { forceReload = false; }
         // Must capture href now because it may mysteriously change later if
         // document parsing fails.
         var href = urlUtil.href;
         var path = urlUtil.protocol + '//' + urlUtil.host + urlUtil.pathname;
-        // No-op if the URL is identical.
-        if (isPush && (href === location.href))
+        // No-op if the URL is identical, unless a reload was intended.
+        if (isPush && (href === location.href) && !forceReload)
             return;
         // No-op if a request is currently in progress.
         if (!!currentXhr)
@@ -120,14 +131,14 @@
              */
             // let target = location.hash ? newDocument.getElementById(location.hash.slice(1)) : null;
             var targetId = location.hash ? location.hash.slice(1) : null;
-            var noScroll = false;
+            var noScroll = keepScrollPosition || false;
             if (!targetId && isPush && urlUtil instanceof HTMLElement) {
-                if (urlUtil.hasAttribute('data-noscroll')) {
+                if (keepScrollPosition || urlUtil.hasAttribute('data-noscroll')) {
                     noScroll = true;
                 }
                 else if (urlUtil.hasAttribute('data-scroll-to-id')) {
                     targetId = urlUtil.getAttribute('data-scroll-to-id') ||
-                        typeof config.defaultMainId === 'string' && config.defaultMainId;
+                        typeof pjax.defaultMainId === 'string' && pjax.defaultMainId;
                 }
             }
             // First scroll: before the transition.
@@ -172,21 +183,21 @@
         indicateLoadStart(xhr);
     }
     function indicateLoadStart(xhr) {
-        if (config.loadIndicatorDelay > 0) {
+        if (pjax.loadIndicatorDelay > 0) {
             var id = setTimeout(function () {
                 if (xhr.readyState === 4) {
                     clearTimeout(id);
                     return;
                 }
-                if (typeof config.onIndicateLoadStart === 'function') {
-                    config.onIndicateLoadStart();
+                if (typeof pjax.onIndicateLoadStart === 'function') {
+                    pjax.onIndicateLoadStart();
                 }
-            }, config.loadIndicatorDelay);
+            }, pjax.loadIndicatorDelay);
         }
     }
     function indicateLoadEnd() {
-        if (config.loadIndicatorDelay > 0 && typeof config.onIndicateLoadEnd === 'function') {
-            config.onIndicateLoadEnd();
+        if (pjax.loadIndicatorDelay > 0 && typeof pjax.onIndicateLoadEnd === 'function') {
+            pjax.onIndicateLoadEnd();
         }
     }
     // TODO test in Opera.
@@ -263,10 +274,10 @@
     }
     // Expose configuration object.
     if (typeof module === 'object' && module && module.exports) {
-        module.exports = config;
+        module.exports = pjax;
     }
     else {
-        window.simplePjaxConfig = config;
+        window.simplePjaxConfig = pjax;
     }
     // IE compat: IE doesn't support dispatching events created with constructors,
     // at least not for document.dispatchEvent.
@@ -275,10 +286,10 @@
         event.initEvent(name, true, true);
         return event;
     }
-    // See config.scrollOffsetSelector.
+    // See pjax.scrollOffsetSelector.
     function offsetScroll() {
-        if (typeof config.scrollOffsetSelector === 'string' && config.scrollOffsetSelector) {
-            var elem = document.querySelector(config.scrollOffsetSelector);
+        if (typeof pjax.scrollOffsetSelector === 'string' && pjax.scrollOffsetSelector) {
+            var elem = document.querySelector(pjax.scrollOffsetSelector);
             var style = getComputedStyle(elem);
             if (style.position === 'fixed' && style.top === '0px') {
                 window.scrollBy(0, -elem.getBoundingClientRect().height);
