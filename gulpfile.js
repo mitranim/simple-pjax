@@ -191,9 +191,8 @@ gulp.task('docs:html:watch', function() {
 
 /* -------------------------------- Scripts ---------------------------------*/
 
-gulp.task('docs:scripts:build', function(done) {
+function scripts (done) {
   var alias = {
-    'stylific': 'stylific/lib/stylific.min',
     'simple-pjax': pt.join(process.cwd(), src.libJs)
   };
   if (prod()) alias.react = 'react/dist/react.min';
@@ -231,7 +230,8 @@ gulp.task('docs:scripts:build', function(done) {
         }
       ]
     },
-    plugins: prod() ? [new webpack.optimize.UglifyJsPlugin()] : []
+    plugins: prod() ? [new webpack.optimize.UglifyJsPlugin({compress: {warnings: false}})] : [],
+    watch: typeof done !== 'function'
   }, function (err, stats) {
     if (err) {
       throw new Error(err);
@@ -246,13 +246,14 @@ gulp.task('docs:scripts:build', function(done) {
       });
       if (report) console.log(report);
     }
-    done();
+    if (typeof done === 'function') done();
+    else bsync.reload();
   });
-});
+}
 
-gulp.task('docs:scripts:watch', function () {
-  $.watch(src.docScripts, gulp.series('docs:scripts:build', reload));
-});
+gulp.task('docs:scripts:build', scripts);
+
+gulp.task('docs:scripts:build:watch', (_) => {scripts()});
 
 /*--------------------------------- Styles ----------------------------------*/
 
@@ -339,13 +340,19 @@ gulp.task('server', function() {
 
 /*--------------------------------- Default ---------------------------------*/
 
-gulp.task('build', gulp.parallel(
-  gulp.series('lib:build', 'docs:scripts:build'), 'docs:html:build',
-  'docs:styles:build', 'docs:images:build', 'docs:fonts:build'
-));
+if (prod()) {
+  gulp.task('build', gulp.parallel(
+    gulp.series('lib:build', 'docs:scripts:build'),
+    'docs:html:build', 'docs:styles:build', 'docs:images:build', 'docs:fonts:build'
+  ));
+} else {
+  gulp.task('build', gulp.parallel(
+    'lib:build', 'docs:html:build', 'docs:styles:build', 'docs:images:build', 'docs:fonts:build'
+  ));
+}
 
 gulp.task('watch', gulp.parallel(
-  'lib:watch', 'docs:scripts:watch', 'docs:html:watch', 'docs:styles:watch',
+  'lib:watch', 'docs:scripts:build:watch', 'docs:html:watch', 'docs:styles:watch',
   'docs:images:watch', 'docs:fonts:watch'
 ));
 
