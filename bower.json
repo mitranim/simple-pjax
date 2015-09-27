@@ -1,6 +1,6 @@
 {
   "name": "simple-pjax",
-  "main": "lib/simple-pjax.js",
+  "main": "dist/simple-pjax.js",
   "description": "Zero-configuration PJAX for typical websites",
   "authors": [
     "Mitranim <me@mitranim.com>"
@@ -15,8 +15,8 @@
   },
   "ignore": [
     "*",
-    "!lib/simple-pjax.js",
-    "!lib/simple-pjax.min.js",
+    "!dist/simple-pjax.js",
+    "!dist/simple-pjax.min.js",
     "!bower.json",
     "!readme.md"
   ]
