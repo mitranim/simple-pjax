@@ -1,13 +1,16 @@
-'format cjs';
+/**
+ * Source and documentation:
+ *   https://github.com/Mitranim/simple-pjax
+ */
 
 !function() {
-    'use strict';
+'use strict';
 
-    // No-op if not running in a browser.
-    if (typeof window !== 'object' || !window) return;
+// No-op if not running in a browser.
+if (typeof window !== 'object' || !window) return;
 
-    // No-op if pushState is unavailable.
-    if (typeof history.pushState !== 'function') return;
+// No-op if pushState is unavailable.
+if (typeof history.pushState !== 'function') return;
 
 var isCommonJs = typeof module === 'object' && module !== null &&
     typeof module.exports === 'object' && module.exports !== null;
@@ -61,9 +64,9 @@ else
     window.simplePjax = pjax;
 // Current request. Only one can be active at a time.
 var currentXhr;
-// Current pathname and query, used to detect useless popstate events.
-var lastPathname;
-var lastQuery;
+// Used to detect useless popstate events.
+var lastPathname = '';
+var lastQuery = '';
 rememberPath();
 // Configuration object for interfacing between anchors, `location`, and
 // programmatic triggers.
@@ -72,10 +75,13 @@ var Config = (function () {
         var _this = this;
         this.href = '';
         this.host = '';
+        this.hash = '';
         this.pathname = '';
         this.path = '';
         this.protocol = '';
+        this.search = '';
         this.isPush = false;
+        this.rafId = null;
         // Copy properties.
         Object.keys(this).forEach(function (key) {
             if (key in urlUtil)
@@ -125,28 +131,81 @@ document.addEventListener('click', function (event) {
     // Ignore links intended to affet other tabs or windows.
     if (anchor.target === '_blank' || anchor.target === '_top')
         return;
-    // Ignore hash links on the same page.
-    if ((anchor.pathname === location.pathname) && !!anchor.hash)
-        return;
     // Ignore links with the data-no-pjax attribute.
     if (anchor.hasAttribute('data-no-pjax'))
         return;
+    // Ignore hash links on the same page if `pjax.scrollOffsetSelector` is
+    // unspecified.
+    if ((anchor.pathname === location.pathname) && anchor.hash && !pjax.scrollOffsetSelector) {
+        return;
+    }
     // Load clicked link.
     event.preventDefault();
     transitionTo(new Config(anchor, { isPush: true }));
 });
-window.addEventListener('popstate', function () {
-    // Ignore useless popstate events (initial popstate in Webkit and popstate
-    // on hash changes).
+window.addEventListener('popstate', function (event) {
+    // Ignore useless popstate events. This includes initial popstate in Webkit
+    // (not in Blink), and popstate on hash changes. Note that we ignore hash
+    // changes by not remembering or comparing the hash at all.
     if (pathUnchanged())
         return;
     rememberPath();
-    transitionTo(new Config(location));
+    /*
+     * After a popstate event, Blink/Webkit (what about Edge?) restore the
+     * last scroll position the browser remembers for that history entry.
+     * Because our XHR is asynchronous and there's a delay before replacing the
+     * document, this causes the page to jump around. To prevent that, we
+     * artificially readjust the scroll position. If the XHR is finished before
+     * the next frame runs, we cancel the task.
+     *
+     * Webkit (Safari) does receive the correct scroll values, but the page still
+     * jumps around. TODO look for a workaround.
+     *
+     * Unfortunately FF restores the scroll position _before_ firing popstate
+     * (which is spec-compliant), so the page still jumps around. To work around
+     * this, we would have to listen to scroll events on window and continuously
+     * memorize the last scroll position; I'm going to leave the FF behaviour
+     * as-is until a better workaround comes up.
+     *
+     * The FF problem might fix itself:
+     *   https://bugzilla.mozilla.org/show_bug.cgi?id=1186774
+     *   https://github.com/whatwg/html/issues/39
+     */
+    var currentX = window.scrollX;
+    var currentY = window.scrollY;
+    var rafId = requestAnimationFrame(function () {
+        window.scrollTo(currentX, currentY);
+    });
+    transitionTo(new Config(location, { rafId: rafId }));
 });
 function transitionTo(config) {
-    // No-op if the URL is identical, unless a reload was intended.
-    if (config.isPush && (config.href === location.href) && !('data-force-reload' in config))
+    // Special behaviour if this is a push transition within one page. If it leads
+    // to a hash target, try to scroll to it. If not, scroll to the top, iOS-style.
+    // In both cases, pjax is not performed.
+    var path = location.protocol + '//' + location.host + location.pathname;
+    if (config.isPush && config.path === path &&
+        config.search === location.search && !('data-force-reload' in config)) {
+        // Change the URL and history, if applicable. This needs to be done before
+        // changing the scroll position in order to let the browser correctly
+        // remember the current position.
+        if (config.href !== location.href) {
+            history.pushState(null, document.title, config.href);
+            rememberPath();
+        }
+        if (config.hash) {
+            // Hash found: try to scroll to it.
+            var target = document.querySelector(config.hash);
+            if (target instanceof HTMLElement) {
+                target.scrollIntoView();
+                offsetScroll();
+            }
+        }
+        else {
+            // No hash found: scroll up.
+            window.scrollTo(0, 0);
+        }
         return;
+    }
     // No-op if a request is currently in progress.
     if (!!currentXhr)
         return;
@@ -156,6 +215,10 @@ function transitionTo(config) {
             xhr.onerror(null);
             return;
         }
+        // Cancel the scroll readjustment, if any. If it has already run, this
+        // should have no effect.
+        if (config.rafId)
+            cancelAnimationFrame(config.rafId);
         currentXhr = null;
         var newDocument = getDocument(xhr);
         if (!newDocument) {
@@ -191,28 +254,24 @@ function transitionTo(config) {
             target.scrollIntoView();
             offsetScroll();
         }
-        else if (!targetId && !noScroll)
+        else if (!targetId && !noScroll) {
             window.scrollTo(0, 0);
+        }
         // Switch to the new document.
         replaceDocument(newDocument);
         indicateLoadEnd();
-        // Second scroll: after the transition.
-        target = document.getElementById(targetId);
-        if (target) {
-            // This has to happen in a separate frame in order to give JavaScript
-            // components a change to alter the document and give the browser an
-            // opportunity to repaint. This way, the scroll position will be more
-            // accurate.
-            requestAnimationFrame(function () {
-                target.scrollIntoView();
-                offsetScroll();
-            });
-        }
-        else if (!noScroll)
-            window.scrollTo(0, 0);
         // Provide a hook for scripts that may want to run when the document
         // is loaded.
         document.dispatchEvent(createEvent('DOMContentLoaded'));
+        // Second scroll: after the transition.
+        target = document.getElementById(targetId);
+        if (target) {
+            target.scrollIntoView();
+            offsetScroll();
+        }
+        else if (!noScroll) {
+            window.scrollTo(0, 0);
+        }
     };
     xhr.onabort = xhr.onerror = xhr.ontimeout = function () {
         currentXhr = null;
@@ -309,12 +368,15 @@ function copyScript(script) {
 function destroysDocument(script) {
     return /document\s*\.\s*(?:write|open)\s*\(/.test(script.textContent);
 }
+// Used with each `history.pushState` call to help us discard redundant popstate
+// events.
 function rememberPath() {
     lastPathname = location.pathname;
     lastQuery = location.search;
 }
 function pathUnchanged() {
-    return location.pathname === lastPathname && location.search === lastQuery;
+    return location.pathname === lastPathname &&
+        location.search === lastQuery;
 }
 // IE compat: IE doesn't support dispatching events created with constructors,
 // at least not for document.dispatchEvent.
@@ -333,5 +395,6 @@ function offsetScroll() {
         }
     }
 }
+
 
 }();

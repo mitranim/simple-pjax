@@ -8,7 +8,7 @@ ul {
 }
 
 .sidenav {
-  @extend .layout-column;
+  @extend .col-start-stretch;
   min-width: 12em;
 
   > * {
@@ -66,4 +66,22 @@ ul {
 }
 .fa.pop:hover {
   transform: scale(1.2);
+}
+
+// Indicate _blank links.
+a[target~=_blank] {
+  article &, .sf-article & {
+    &::after {
+      // Icon.
+      content: $fa-var-external-link;
+
+      // Base icon styles.
+      @extend .fa;
+
+      // Cosmetic.
+      margin-left: 0.3em;
+      opacity: 0.5;
+      font-size: 0.8em;
+    }
+  }
 }

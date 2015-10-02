@@ -1,25 +1,29 @@
-'use strict';
+'use strict'
 
 /**
  * Requires gulp 4.0:
  *   "gulp": "git://github.com/gulpjs/gulp#4.0"
  */
 
-/******************************* Dependencies ********************************/
+/*
+ * Style per http://standardjs.com
+ */
 
-const $       = require('gulp-load-plugins')();
-const bsync   = require('browser-sync').create();
-const del     = require('del');
-const gulp    = require('gulp');
-const hjs     = require('highlight.js');
-const marked  = require('gulp-marked/node_modules/marked');
-const flags   = require('yargs').argv;
-const pt      = require('path');
-const webpack = require('webpack');
+/** **************************** Dependencies ********************************/
 
-/********************************** Globals **********************************/
+const $ = require('gulp-load-plugins')()
+const bsync = require('browser-sync').create()
+const del = require('del')
+const flags = require('yargs').argv
+const gulp = require('gulp')
+const hjs = require('highlight.js')
+const marked = require('gulp-marked/node_modules/marked')
+const pt = require('path')
+const webpack = require('webpack')
 
-const filename = 'simple-pjax';
+/** ******************************* Globals **********************************/
+
+const filename = 'simple-pjax'
 
 const src = {
   libTs: 'src/simple-pjax.ts',
@@ -31,135 +35,134 @@ const src = {
   docStylesCore: 'src-docs/styles/app.scss',
   docImages: 'src-docs/images/**/*',
   docFonts: 'node_modules/font-awesome/fonts/**/*'
-};
+}
 
-const destBase = 'gh-pages';
+const destBase = 'gh-pages'
 
 const dest = {
-  lib:       'dist',
-  docHtml:    destBase,
+  lib: 'dist',
+  docHtml: destBase,
   docScripts: destBase + '/scripts',
-  docStyles:  destBase + '/styles',
-  docImages:  destBase + '/images',
-  docFonts:   destBase + '/fonts'
-};
-
-function prod() {
-  return flags.prod === true || flags.prod === 'true';
+  docStyles: destBase + '/styles',
+  docImages: destBase + '/images',
+  docFonts: destBase + '/fonts'
 }
 
-function reload(done) {
-  bsync.reload();
-  done();
+function prod () {
+  return flags.prod === true || flags.prod === 'true'
 }
 
-/********************************** Config ***********************************/
+function reload (done) {
+  bsync.reload()
+  done()
+}
+
+/** ******************************* Config ***********************************/
 
 /**
  * Change how marked compiles links to add target="_blank" to links to other sites.
  */
 
-// Default link renderer func.
-const linkDef = marked.Renderer.prototype.link;
-
 // Custom link renderer func that adds target="_blank" to links to other sites.
 // Mostly copied from the marked source.
-marked.Renderer.prototype.link = function(href, title, text) {
+marked.Renderer.prototype.link = function (href, title, text) {
   if (this.options.sanitize) {
+    let prot = ''
     try {
-      const prot = decodeURIComponent(unescape(href))
+      prot = decodeURIComponent(unescape(href))
         .replace(/[^\w:]/g, '')
-        .toLowerCase();
+        .toLowerCase()
     } catch (e) {
-      return '';
+      return ''
     }
     if (prot.indexOf('javascript:') === 0 || prot.indexOf('vbscript:') === 0) {
-      return '';
+      return ''
     }
   }
-  let out = '<a href="' + href + '"';
+  let out = '<a href="' + href + '"'
   if (title) {
-    out += ' title="' + title + '"';
+    out += ' title="' + title + '"'
   }
   if (/^[a-z]+:\/\//.test(href)) {
-    out += ' target="_blank"';
+    out += ' target="_blank"'
   }
-  out += '>' + text + '</a>';
-  return out;
-};
+  out += '>' + text + '</a>'
+  return out
+}
 
-/*********************************** Tasks ***********************************/
+/** ******************************** Tasks ***********************************/
 
-/*----------------------------------- Lib -----------------------------------*/
+/* ---------------------------------- Lib -----------------------------------*/
 
-gulp.task('lib:clear', function(done) {
-  del(dest.lib).then((_) => {done()});
-});
+gulp.task('lib:clear', function (done) {
+  del(dest.lib).then((_) => {done()})
+})
 
-gulp.task('lib:compile', function() {
+gulp.task('lib:compile', function () {
   return gulp.src(src.libTs)
     .pipe($.plumber())
     .pipe($.typescript({
       target: 'ES3'
     }))
     .pipe($.wrap(
-`'format cjs';
+`/**
+ * Source and documentation:
+ *   https://github.com/Mitranim/simple-pjax
+ */
 
 !function() {
-    'use strict';
+'use strict';
 
-    // No-op if not running in a browser.
-    if (typeof window !== 'object' || !window) return;
+// No-op if not running in a browser.
+if (typeof window !== 'object' || !window) return;
 
-    // No-op if pushState is unavailable.
-    if (typeof history.pushState !== 'function') return;
+// No-op if pushState is unavailable.
+if (typeof history.pushState !== 'function') return;
 
 <%= contents %>
+
 }();`))
     .pipe($.rename(`${filename}.js`))
-    .pipe(gulp.dest(dest.lib));
-});
+    .pipe(gulp.dest(dest.lib))
+})
 
-gulp.task('lib:minify', function() {
+gulp.task('lib:minify', function () {
   return gulp.src(src.libJs)
-    .pipe($.uglify({
-      mangle: true,
-      lint: true
-    }))
+    .pipe($.uglify({mangle: true}))
     .pipe($.rename(`${filename}.min.js`))
-    .pipe(gulp.dest(dest.lib));
-});
+    .pipe(gulp.dest(dest.lib))
+})
 
-gulp.task('lib:build', gulp.series('lib:clear', 'lib:compile', 'lib:minify'));
+gulp.task('lib:build', gulp.series('lib:clear', 'lib:compile', 'lib:minify'))
 
-gulp.task('lib:watch', function() {
-  $.watch(src.libTs, gulp.series('lib:build', reload));
-});
+gulp.task('lib:watch', function () {
+  $.watch(src.libTs, gulp.series('lib:build', reload))
+})
 
-/*---------------------------------- HTML -----------------------------------*/
+/* --------------------------------- HTML -----------------------------------*/
 
-gulp.task('docs:html:clear', function(done) {
-  del(dest.docHtml + '/**/*.html').then((_) => {done()});
-});
+gulp.task('docs:html:clear', function (done) {
+  del(dest.docHtml + '/**/*.html').then((_) => {done()})
+})
 
-gulp.task('docs:html:compile', function() {
-  var filterMd = $.filter('**/*.md')
+gulp.task('docs:html:compile', function () {
+  const filterMd = $.filter('**/*.md')
 
   return gulp.src(src.docHtml)
     .pipe($.plumber())
     // Pre-process markdown files.
     .pipe(filterMd)
     .pipe($.marked({
-      gfm:         true,
-      tables:      true,
-      breaks:      false,
-      sanitize:    false,
+      gfm: true,
+      tables: true,
+      breaks: false,
+      sanitize: false,
       smartypants: false,
-      pedantic:    false,
+      pedantic: false,
       // Code highlighter.
-      highlight: function(code, lang) {
-        var result = lang ? hjs.highlight(lang, code) : hjs.highlightAuto(code);
-        return result.value;
+      highlight: function (code, lang) {
+        const result = lang ? hjs.highlight(lang, code) : hjs.highlightAuto(code)
+        return result.value
       }
     }))
     // Add hljs code class.
@@ -172,30 +175,30 @@ gulp.task('docs:html:compile', function() {
     // Render all html.
     .pipe($.statil({imports: {prod: prod}}))
     // Change each `<filename>` into `<filename>/index.html`.
-    .pipe($.rename(function(path) {
+    .pipe($.rename(function (path) {
       switch (path.basename + path.extname) {
-        case 'index.html': case '404.html': return;
+        case 'index.html': case '404.html': return
       }
-      path.dirname = pt.join(path.dirname, path.basename);
-      path.basename = 'index';
+      path.dirname = pt.join(path.dirname, path.basename)
+      path.basename = 'index'
     }))
     // Write to disk.
-    .pipe(gulp.dest(dest.docHtml));
-});
+    .pipe(gulp.dest(dest.docHtml))
+})
 
-gulp.task('docs:html:build', gulp.series('docs:html:clear', 'docs:html:compile'));
+gulp.task('docs:html:build', gulp.series('docs:html:clear', 'docs:html:compile'))
 
-gulp.task('docs:html:watch', function() {
-  $.watch(src.docHtml, gulp.series('docs:html:build', reload));
-});
+gulp.task('docs:html:watch', function () {
+  $.watch(src.docHtml, gulp.series('docs:html:build', reload))
+})
 
 /* -------------------------------- Scripts ---------------------------------*/
 
 function scripts (done) {
-  var alias = {
+  const alias = {
     'simple-pjax': pt.join(process.cwd(), src.libJs)
-  };
-  if (prod()) alias.react = 'react/dist/react.min';
+  }
+  if (prod()) alias.react = 'react/dist/react.min'
 
   webpack({
     entry: './' + src.docScriptsCore,
@@ -234,34 +237,34 @@ function scripts (done) {
     watch: typeof done !== 'function'
   }, function (err, stats) {
     if (err) {
-      throw new Error(err);
+      throw new Error(err)
     } else {
-      var report = stats.toString({
+      const report = stats.toString({
         colors: true,
         chunks: false,
-        timings: false,
+        timings: true,
         version: false,
         hash: false,
         assets: false
-      });
-      if (report) console.log(report);
+      })
+      if (report) console.log(report)
     }
-    if (typeof done === 'function') done();
-    else bsync.reload();
-  });
+    if (typeof done === 'function') done()
+    else bsync.reload()
+  })
 }
 
-gulp.task('docs:scripts:build', scripts);
+gulp.task('docs:scripts:build', scripts)
 
-gulp.task('docs:scripts:build:watch', (_) => {scripts()});
+gulp.task('docs:scripts:build:watch', (_) => {scripts()})
 
-/*--------------------------------- Styles ----------------------------------*/
+/* -------------------------------- Styles ----------------------------------*/
 
-gulp.task('docs:styles:clear', function(done) {
-  del(dest.docStyles).then((_) => {done()});
-});
+gulp.task('docs:styles:clear', function (done) {
+  del(dest.docStyles).then((_) => {done()})
+})
 
-gulp.task('docs:styles:compile', function() {
+gulp.task('docs:styles:compile', function () {
   return gulp.src(src.docStylesCore)
     .pipe($.plumber())
     .pipe($.sass())
@@ -272,61 +275,61 @@ gulp.task('docs:styles:compile', function() {
       advanced: false
     })))
     .pipe(gulp.dest(dest.docStyles))
-    .pipe(bsync.reload({stream: true}));
-});
+    .pipe(bsync.reload({stream: true}))
+})
 
 gulp.task('docs:styles:build',
-  gulp.series('docs:styles:clear', 'docs:styles:compile'));
+  gulp.series('docs:styles:clear', 'docs:styles:compile'))
 
-gulp.task('docs:styles:watch', function() {
-  $.watch(src.docStyles, gulp.series('docs:styles:build'));
-  $.watch('node_modules/stylific/scss/**/*.scss', gulp.series('docs:styles:build'));
-});
+gulp.task('docs:styles:watch', function () {
+  $.watch(src.docStyles, gulp.series('docs:styles:build'))
+  $.watch('node_modules/stylific/scss/**/*.scss', gulp.series('docs:styles:build'))
+})
 
-/*--------------------------------- Images ----------------------------------*/
+/* -------------------------------- Images ----------------------------------*/
 
-gulp.task('docs:images:clear', function(done) {
-  del(dest.docImages).then((_) => {done()});
-});
+gulp.task('docs:images:clear', function (done) {
+  del(dest.docImages).then((_) => {done()})
+})
 
-gulp.task('docs:images:copy', function() {
+gulp.task('docs:images:copy', function () {
   return gulp.src(src.docImages)
     .pipe(gulp.dest(dest.docImages))
-    .pipe(bsync.reload({stream: true}));
-});
+    .pipe(bsync.reload({stream: true}))
+})
 
-gulp.task('docs:images:build', gulp.series('docs:images:clear', 'docs:images:copy'));
+gulp.task('docs:images:build', gulp.series('docs:images:clear', 'docs:images:copy'))
 
-gulp.task('docs:images:watch', function() {
-  $.watch(src.docImages, gulp.series('docs:images:build'));
-});
+gulp.task('docs:images:watch', function () {
+  $.watch(src.docImages, gulp.series('docs:images:build'))
+})
 
-/*---------------------------------- Fonts ----------------------------------*/
+/* --------------------------------- Fonts ----------------------------------*/
 
-gulp.task('docs:fonts:clear', function(done) {
-  del(dest.docFonts).then((_) => {done()});
-});
+gulp.task('docs:fonts:clear', function (done) {
+  del(dest.docFonts).then((_) => {done()})
+})
 
-gulp.task('docs:fonts:copy', function() {
-  return gulp.src(src.docFonts).pipe(gulp.dest(dest.docFonts));
-});
+gulp.task('docs:fonts:copy', function () {
+  return gulp.src(src.docFonts).pipe(gulp.dest(dest.docFonts))
+})
 
-gulp.task('docs:fonts:build', gulp.series('docs:fonts:copy'));
+gulp.task('docs:fonts:build', gulp.series('docs:fonts:copy'))
 
-gulp.task('docs:fonts:watch', function() {
-  $.watch(src.docFonts, gulp.series('docs:fonts:build', reload));
-});
+gulp.task('docs:fonts:watch', function () {
+  $.watch(src.docFonts, gulp.series('docs:fonts:build', reload))
+})
 
-/*--------------------------------- Server ----------------------------------*/
+/* -------------------------------- Server ----------------------------------*/
 
-gulp.task('server', function() {
+gulp.task('server', function () {
   return bsync.init({
     startPath: '/simple-pjax/',
     server: {
       baseDir: dest.docHtml,
-      middleware: function(req, res, next) {
-        req.url = req.url.replace(/^\/simple-pjax\//, '').replace(/^[/]*/, '/');
-        next();
+      middleware: function (req, res, next) {
+        req.url = req.url.replace(/^\/simple-pjax\//, '').replace(/^[/]*/, '/')
+        next()
       }
     },
     port: 4573,
@@ -335,25 +338,25 @@ gulp.task('server', function() {
     files: false,
     ghostMode: false,
     notify: true
-  });
-});
+  })
+})
 
-/*--------------------------------- Default ---------------------------------*/
+/* -------------------------------- Default ---------------------------------*/
 
 if (prod()) {
   gulp.task('build', gulp.parallel(
     gulp.series('lib:build', 'docs:scripts:build'),
     'docs:html:build', 'docs:styles:build', 'docs:images:build', 'docs:fonts:build'
-  ));
+  ))
 } else {
   gulp.task('build', gulp.parallel(
     'lib:build', 'docs:html:build', 'docs:styles:build', 'docs:images:build', 'docs:fonts:build'
-  ));
+  ))
 }
 
 gulp.task('watch', gulp.parallel(
   'lib:watch', 'docs:scripts:build:watch', 'docs:html:watch', 'docs:styles:watch',
   'docs:images:watch', 'docs:fonts:watch'
-));
+))
 
-gulp.task('default', gulp.series('build', gulp.parallel('watch', 'server')));
+gulp.task('default', gulp.series('build', gulp.parallel('watch', 'server')))
