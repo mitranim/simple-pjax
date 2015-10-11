@@ -52,7 +52,6 @@ Grab through your favourite package manager:
 ```sh
 npm i --save-dev simple-pjax
 jspm install npm:simple-pjax
-bower i --save Mitranim/simple-pjax
 ```
 
 Import in your code:
