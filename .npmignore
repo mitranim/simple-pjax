@@ -1,5 +1,4 @@
 *
-!lib/simple-pjax.js
-!lib/simple-pjax.min.js
+!dist
 !package.json
 !readme.md

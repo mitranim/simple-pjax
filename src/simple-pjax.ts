@@ -191,8 +191,7 @@ window.addEventListener('popstate', event => {
 
 function transitionTo(config: Config): void {
   // Special behaviour if this is a push transition within one page. If it leads
-  // to a hash target, try to scroll to it. If not, scroll to the top, iOS-style.
-  // In both cases, pjax is not performed.
+  // to a hash target, try to scroll to it. Pjax is not performed.
   const path = location.protocol + '//' + location.host + location.pathname;
 
   if (config.isPush && config.path === path &&
@@ -212,9 +211,6 @@ function transitionTo(config: Config): void {
         target.scrollIntoView();
         offsetScroll();
       }
-    } else {
-      // No hash found: scroll up.
-      window.scrollTo(0, 0);
     }
 
     return;

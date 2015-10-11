@@ -7,5 +7,4 @@ node_modules
 gh-pages
 
 # Built files
-dist/simple-pjax.min.js
-notes.md
+dist

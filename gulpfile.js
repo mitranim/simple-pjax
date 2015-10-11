@@ -102,7 +102,7 @@ gulp.task('lib:compile', function () {
   return gulp.src(src.libTs)
     .pipe($.plumber())
     .pipe($.typescript({
-      target: 'ES3'
+      target: 'ES5'
     }))
     .pipe($.wrap(
 `/**
