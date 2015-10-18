@@ -1,6 +1,6 @@
 {
   "name": "simple-pjax",
-  "version": "0.2.8",
+  "version": "0.2.9",
   "main": "dist/simple-pjax.js",
   "scripts": {
     "start": "gulp",

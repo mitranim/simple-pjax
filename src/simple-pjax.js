@@ -377,7 +377,7 @@ function removeScriptsWithSrc (doc: HTMLDocument): void {
 // through a `document.write` or `document.open` call, a dummy is returned.
 function copyScript (originalScript: HTMLScriptElement): HTMLScriptElement {
   const script = document.createElement('script')
-  if (!destroysDocument(originalScript)) {
+  if (!destroysDocument(originalScript.textContent)) {
     if (originalScript.type) script.type = originalScript.type
     script.textContent = originalScript.textContent
   }
