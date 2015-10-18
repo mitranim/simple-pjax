@@ -45,10 +45,13 @@ ul {
 .banner {
   // Layout.
   min-height: 6em;
+
   // Cosmetic.
-  background-color: $color-primary;
-  color: white;
-  a {color: white}
+  a[href] {
+    &, &:hover, &:focus, &:active {
+      background: none;
+    }
+  }
 }
 
 .fa.inline {

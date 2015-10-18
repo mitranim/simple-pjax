@@ -355,7 +355,7 @@ gulp.task('server', function () {
     ui: false,
     files: false,
     ghostMode: false,
-    notify: true
+    notify: false
   })
 })
 

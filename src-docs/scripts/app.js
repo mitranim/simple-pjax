@@ -1,7 +1,32 @@
+/* global localStorage, location, getComputedStyle */
+
 import 'stylific'
-import 'simple-pjax'
 import React from 'react'
 import {render} from 'react-dom'
+
+if (isPjaxEnabled()) require('simple-pjax')
+
+@renderTo('[data-render-pjax-toggle]')
+export class PjaxToggle extends React.Component {
+  render () {
+    const enabled = isPjaxEnabled()
+    return (
+      <span>
+        <button className={`checkbox checkbox-switch ${enabled ? 'active' : ''}`}
+                ref='toggle' onClick={::this.onClick} />
+        <span> Pjax is {enabled ? 'enabled' : 'disabled'} (click to toggle).</span>
+      </span>
+    )
+  }
+
+  onClick () {
+    togglePjax()
+    this.forceUpdate()
+
+    const duration = parseFloat(getComputedStyle(this.refs.toggle).transitionDuration)
+    setTimeout(::location.reload, duration)
+  }
+}
 
 @renderTo('[data-render-demo]')
 export class Demo extends React.Component {
@@ -32,4 +57,13 @@ function renderTo (selector: string) {
 function onEachLoad (callback: () => void): void {
   if (/loaded|complete|interactive/.test(document.readyState)) callback()
   document.addEventListener('DOMContentLoaded', callback)
+}
+
+function isPjaxEnabled () {
+  return !localStorage.getItem('disablePjax')
+}
+
+function togglePjax () {
+  if (isPjaxEnabled()) localStorage.setItem('disablePjax', ' ')
+  else localStorage.removeItem('disablePjax')
 }

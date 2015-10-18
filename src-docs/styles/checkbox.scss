@@ -1,0 +1,126 @@
+@mixin checkbox-icon-styles($color, $icon-base, $icon-active, $icon-selected) {
+  $color-contrasting: sf-contrasting-color($color);
+
+  // Icon.
+  @extend .fa;
+  @extend .fa-#{$icon-base};
+
+  // Cosmetic.
+  color: $color;
+  [class*=theme-]:not([class*=theme-text-]) &, &.checkbox-light {
+    color: $color-contrasting;
+  }
+
+  @if $icon-active {
+    &:not([disabled]):not(.active) {
+      &:hover, &:active {
+        @extend .fa-#{$icon-active};
+      }
+    }
+  }
+
+  &.active {
+    @extend .fa-#{$icon-selected};
+  }
+
+  &:not([disabled]) {
+    &:hover, &:focus, &:active {
+      color: darken($color, 10%);
+      [class*=theme-]:not([class*=theme-text-]) &, &.checkbox-light {
+        color: darken($color-contrasting, 5%);
+      }
+    }
+  }
+
+  // Any extras.
+  @content;
+}
+
+.checkbox {
+
+  // Base styles.
+  display: inline-block;
+  cursor: pointer;
+  @include sf-transitions(all);
+  &[disabled] {
+    cursor: not-allowed;
+  }
+
+  // Counteract some stylific default button styles.
+  padding: 0;
+  @extend .sf-button-flat;
+  &, &:hover, &:focus, &:active, &.active {
+    box-shadow: none;
+  }
+
+  // Circle version.
+  &.checkbox-circle {
+    @include checkbox-icon-styles($color-green, circle-thin, null, check-circle);
+  }
+
+  // Toggle version.
+  &.checkbox-toggle {
+    @include checkbox-icon-styles($color-green, toggle-off, null, toggle-on);
+
+    // Adjust font size to match the circle version.
+    font-size: 1.1em;
+    &.text-size-double, .text-size-double & {
+      font-size: 2.2em;
+    }
+  }
+
+  // Switch version.
+  &.checkbox-switch {
+    /**
+     * Base styles.
+     */
+
+    // Layout.
+    display: inline-block;
+    vertical-align: -0.1em;
+    position: relative;
+    width: 1.7em;
+    height: 1em;
+
+    // Cosmetic.
+    color: $color-green;
+    background-color: $sf-color-background;
+    border: 1px solid;
+    border-radius: 1rem;
+
+    &::before {
+      // Layout.
+      content: '';
+      display: inline-block;
+      width: 1em;
+      height: 1em;
+      position: absolute;
+      @include sf-trbl(0, auto, 0, 0);
+
+      // Cosmetic.
+      background-color: $sf-color-background;
+      border: 1px solid;
+      margin: -1px;
+      border-radius: 1rem;
+      @include sf-transitions(all);
+      box-shadow: 1px 0 2px -1px rgba(gray, 0.6);
+    }
+
+    // Checked styles.
+    &.active {
+      background-color: $color-green;
+
+      &::before {
+        background-color: $sf-color-background;
+        transform: translateX(0.7em);
+        box-shadow: -1px 0 2px -1px rgba(gray, 0.8);
+      }
+    }
+
+    // Size adjustments.
+    font-size: 0.9em;
+    &.text-size-double, .text-size-double & {
+      font-size: 1.8em;
+    }
+  }
+}
