@@ -1,13 +1,4 @@
-## React
-
-This page renders a line of text with [React](http://facebook.github.io/react/).
-Note that it works when leaving and revisiting the page. Also note that the
-scripts are only downloaded and executed _once_, on the initial page load.
-
-<div is="demoComponent"></div>
-
-To make this work, we need to put the `React.render` call into a
-`DOMContentLoader` listener, like so:
+<div data-render-demo></div>
 
 ```javascript
 class Demo extends React.Component {

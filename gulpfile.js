@@ -2,10 +2,10 @@
 
 /**
  * Requires gulp 4.0:
- *   "gulp": "git://github.com/gulpjs/gulp#4.0"
- */
-
-/*
+ *   "gulp": "gulpjs/gulp#4.0"
+ *
+ * Requires Node.js 4.0+
+ *
  * Style per http://standardjs.com
  */
 
@@ -14,7 +14,7 @@
 const $ = require('gulp-load-plugins')()
 const bsync = require('browser-sync').create()
 const del = require('del')
-const flags = require('yargs').argv
+const flags = require('yargs').boolean('prod').argv
 const gulp = require('gulp')
 const hjs = require('highlight.js')
 const marked = require('gulp-marked/node_modules/marked')
@@ -26,7 +26,7 @@ const webpack = require('webpack')
 const filename = 'simple-pjax'
 
 const src = {
-  libTs: 'src/simple-pjax.ts',
+  libSrc: 'src/simple-pjax.js',
   libJs: `dist/${filename}.js`,
   docHtml: 'src-docs/html/**/*',
   docScripts: 'src-docs/scripts/**/*.js',
@@ -46,10 +46,6 @@ const dest = {
   docStyles: destBase + '/styles',
   docImages: destBase + '/images',
   docFonts: destBase + '/fonts'
-}
-
-function prod () {
-  return flags.prod === true || flags.prod === 'true'
 }
 
 function reload (done) {
@@ -99,10 +95,17 @@ gulp.task('lib:clear', function (done) {
 })
 
 gulp.task('lib:compile', function () {
-  return gulp.src(src.libTs)
-    .pipe($.plumber())
-    .pipe($.typescript({
-      target: 'ES5'
+  return gulp.src(src.libSrc)
+    .pipe($.babel({
+      modules: 'ignore',
+      optional: [
+        'spec.protoToAssign',
+        'es7.classProperties'
+      ],
+      loose: [
+        'es6.classes'
+      ],
+      blacklist: ['strict']
     }))
     .pipe($.wrap(
 `/**
@@ -136,7 +139,7 @@ gulp.task('lib:minify', function () {
 gulp.task('lib:build', gulp.series('lib:clear', 'lib:compile', 'lib:minify'))
 
 gulp.task('lib:watch', function () {
-  $.watch(src.libTs, gulp.series('lib:build', reload))
+  $.watch(src.libSrc, gulp.series('lib:build'))
 })
 
 /* --------------------------------- HTML -----------------------------------*/
@@ -146,10 +149,9 @@ gulp.task('docs:html:clear', function (done) {
 })
 
 gulp.task('docs:html:compile', function () {
-  const filterMd = $.filter('**/*.md')
+  const filterMd = $.filter('**/*.md', {restore: true})
 
   return gulp.src(src.docHtml)
-    .pipe($.plumber())
     // Pre-process markdown files.
     .pipe(filterMd)
     .pipe($.marked({
@@ -169,11 +171,11 @@ gulp.task('docs:html:compile', function () {
     .pipe($.replace(/<pre><code class="(.*)">|<pre><code>/g,
                     '<pre><code class="hljs $1">'))
     // Return other files.
-    .pipe(filterMd.restore())
+    .pipe(filterMd.restore)
     // Unpack commented HTML parts.
     .pipe($.replace(/<!--\s*:((?:[^:]|:(?!\s*-->))*):\s*-->/g, '$1'))
     // Render all html.
-    .pipe($.statil({imports: {prod: prod}}))
+    .pipe($.statil({imports: {prod: flags.prod}}))
     // Change each `<filename>` into `<filename>/index.html`.
     .pipe($.rename(function (path) {
       switch (path.basename + path.extname) {
@@ -195,13 +197,15 @@ gulp.task('docs:html:watch', function () {
 /* -------------------------------- Scripts ---------------------------------*/
 
 function scripts (done) {
+  const watch = typeof done !== 'function'
+
   const alias = {
     'simple-pjax': pt.join(process.cwd(), src.libJs)
   }
-  if (prod()) alias.react = 'react/dist/react.min'
+  if (flags.prod) alias.react = 'react/dist/react.min'
 
-  webpack({
-    entry: './' + src.docScriptsCore,
+  const watcher = webpack({
+    entry: pt.join(process.cwd(), src.docScriptsCore),
     output: {
       path: pt.join(process.cwd(), dest.docHtml),
       filename: 'app.js'
@@ -233,9 +237,21 @@ function scripts (done) {
         }
       ]
     },
-    plugins: prod() ? [new webpack.optimize.UglifyJsPlugin({compress: {warnings: false}})] : [],
-    watch: typeof done !== 'function'
-  }, function (err, stats) {
+    plugins: flags.prod ? [
+      new webpack.optimize.UglifyJsPlugin({compress: {warnings: false}})
+    ] : [],
+    watch: watch,
+    cache: false
+  }, onComplete)
+
+  // Workaround for webpack watcher not picking up changes in lib files.
+  if (watch) {
+    $.watch(src.libJs, () => {
+      watcher.compiler.run(onComplete)
+    })
+  }
+
+  function onComplete (err, stats) {
     if (err) {
       throw new Error(err)
     } else {
@@ -249,9 +265,9 @@ function scripts (done) {
       })
       if (report) console.log(report)
     }
-    if (typeof done === 'function') done()
-    else bsync.reload()
-  })
+    if (watch) bsync.reload()
+    else done()
+  }
 }
 
 gulp.task('docs:scripts:build', scripts)
@@ -266,10 +282,9 @@ gulp.task('docs:styles:clear', function (done) {
 
 gulp.task('docs:styles:compile', function () {
   return gulp.src(src.docStylesCore)
-    .pipe($.plumber())
     .pipe($.sass())
     .pipe($.autoprefixer())
-    .pipe($.if(prod(), $.minifyCss({
+    .pipe($.if(flags.prod, $.minifyCss({
       keepSpecialComments: 0,
       aggressiveMerging: false,
       advanced: false
@@ -343,7 +358,7 @@ gulp.task('server', function () {
 
 /* -------------------------------- Default ---------------------------------*/
 
-if (prod()) {
+if (flags.prod) {
   gulp.task('build', gulp.parallel(
     gulp.series('lib:build', 'docs:scripts:build'),
     'docs:html:build', 'docs:styles:build', 'docs:images:build', 'docs:fonts:build'
