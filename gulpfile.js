@@ -203,14 +203,14 @@ function scripts (done) {
     'simple-pjax': pt.join(process.cwd(), src.libJs)
   }
   if (flags.prod) {
-    alias.react = 'react/dist/react.min'
+    alias['react'] = 'react/dist/react.min'
     alias['react-dom'] = 'react-dom/dist/react-dom.min'
   }
 
   const watcher = webpack({
     entry: pt.join(process.cwd(), src.docScriptsCore),
     output: {
-      path: pt.join(process.cwd(), dest.docHtml),
+      path: pt.join(process.cwd(), dest.docScripts),
       filename: 'app.js'
     },
     resolve: {
