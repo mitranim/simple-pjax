@@ -1,6 +1,10 @@
 /* global location, XMLHttpRequest, Location, requestAnimationFrame, cancelAnimationFrame, history, HTMLElement, HTMLScriptElement, HTMLAnchorElement, HTMLDocument, DOMParser, Event, getComputedStyle */
 
 /**
+ * Style per http://standardjs.com
+ */
+
+/**
  * Export.
  */
 const pjax = {
