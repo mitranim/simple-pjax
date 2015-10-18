@@ -38,23 +38,27 @@
         
           <div data-render-demo></div>
 
-<pre><code class="hljs lang-javascript"><span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">Demo</span> <span class="hljs-keyword">extends</span> <span class="hljs-title">React</span>.<span class="hljs-title">Component</span> </span>{
-  render() {<span class="hljs-keyword">return</span> (
-    <span class="xml"><span class="hljs-tag">&lt;<span class="hljs-title">div</span> <span class="hljs-attribute">className</span>=<span class="hljs-value">'theme-primary pad'</span>&gt;</span>
-      I'm rendered with React!
-    <span class="hljs-tag">&lt;/<span class="hljs-title">div</span>&gt;</span>
-  )</span>}
-}
+<pre><code class="hljs lang-javascript">// Assuming React 0.14+
+import React from 'react'
+import {render} from 'react-dom'
+
+const Demo = () =&gt; (
+  &lt;div className='theme-primary pad'&gt;
+    I'm rendered with React!
+  &lt;/div&gt;
+)
 
 onEachLoad(() =&gt; {
-  <span class="hljs-keyword">const</span> elem = <span class="hljs-built_in">document</span>.getElementById(<span class="hljs-string">'demoComponent'</span>);
-  <span class="hljs-keyword">if</span> (elem) React.render(<span class="xml"><span class="hljs-tag">&lt;<span class="hljs-title">Demo</span> /&gt;</span>, elem);
+  const elem = document.getElementById('demoComponent')
+  if (elem) render(&lt;Demo /&gt;, elem)
 })
 
-function onEachLoad(callback) {
-  if (/loaded|complete|interactive/.test(document.readyState)) callback();
-  document.addEventListener('DOMContentLoaded', callback);
-}</span>
+function onEachLoad (callback) {
+  if (/loaded|complete|interactive/.test(document.readyState)) {
+    callback()
+  }
+  document.addEventListener('DOMContentLoaded', callback)
+}
 </code></pre>
 
         
