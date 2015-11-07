@@ -1,3 +1,5 @@
+[![js-standard-style](https://img.shields.io/badge/code%20style-standard-brightgreen.svg?style=flat)](http://standardjs.com)
+
 ## TOC
 
 * [Description](#description)
@@ -57,7 +59,7 @@ jspm install npm:simple-pjax
 Import in your code:
 
 ```javascript
-import pjax from 'simple-pjax';
+import pjax from 'simple-pjax'
 ```
 
 Or include as a script tag:
@@ -93,30 +95,30 @@ is assigned to `window.simplePjax`.
 Example config (see defaults in [source](src/simple-pjax.ts)).
 
 ```javascript
-import pjax from 'simple-pjax';
+import pjax from 'simple-pjax'
 
 // Timeout before calling the loading indicator function. Set to 0 to disable.
-pjax.indicateLoadAfter = 100;
+pjax.indicateLoadAfter = 100
 
 // Called when loading takes a while. Use it to display a custom loading indicator.
 pjax.onIndicateLoadStart = function() {
-  document.documentElement.style.opacity = 0.5;
-};
+  document.documentElement.style.opacity = 0.5
+}
 
 // Called when loading ends. Use it to hide a custom loading indicator.
 pjax.onIndicateLoadEnd = function() {
-  document.documentElement.style.opacity = null;
-};
+  document.documentElement.style.opacity = null
+}
 
 // If a selector string is provided, it's checked every time when scrolling
 // to an element (e.g. via data-scroll-to-id). If an element with the
 // {position: 'fixed', top: '0px'} computed style properties is found, the
 // scroll position will be offset by that element's height.
-pjax.scrollOffsetSelector = '.navbar-fixed';
+pjax.scrollOffsetSelector = '.navbar-fixed'
 
 // If a string is provided, it will be used as the default value (default
 // element `id`) for the `[data-scroll-to-id]` attribute.
-pjax.defaultMainId = 'mainView';
+pjax.defaultMainId = 'mainView'
 ```
 
 You can prevent page scroll by adding the `data-noscroll` attribute to a
@@ -149,9 +151,9 @@ and doesn't destroy the JS runtime and other assets. It also doesn't affect
 scroll position.
 
 ```js
-import pjax from 'simple-pjax';
+import pjax from 'simple-pjax'
 
-pjax.reload();
+pjax.reload()
 ```
 
 ## Gotchas
@@ -163,24 +165,21 @@ page, that code must be re-executed to modify the new document body.
 `simple-pjax` mitigates this in two ways.
 
 First, it automatically executes any inline scripts found in the new document.
-If you embed analytics and DOM bootstrap scripts inline, they
-should work out-of-the-box.
+If you embed analytics and DOM bootstrap scripts inline, they should work
+out-of-the-box.
 
-Second, it proposes a convention: when transitioning to a new page and replacing
-the document body, the `DOMContentLoaded` event is artificially re-emitted.
-Non-inline code that wants to run on document load should listen for this event
-and rerun after each page transition.
+Second, it emits two `document`-level DOM events, before and after the
+transition. Use them to perform any necessary DOM mutations or cleanup. Example:
 
-The popular `jQuery#ready` method automatically detaches listeners after running
-them once. If you're using it in non-inline scripts, you'll need to add a
-`DOMContentLoaded` listener to rerun that logic on each new page.
+```javascript
+document.addEventListener('simple-pjax-after-transition', () => {
+  // perform DOM mutations
+})
 
-`simple-pjax` is compatible out of the box with
-[React](http://facebook.github.io/react/). Put your `React.render` calls into
-a `DOMContentLoaded` listener, and your React widgets will render just fine.
-
-Doesn't work out of the box with Angular and Polymer due to how their bootstrap
-process works. Please let me know if you find any workarounds.
+document.addEventListener('simple-pjax-before-transition', () => {
+  // perform cleanup
+})
+```
 
 ## ToDo
 

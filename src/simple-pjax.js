@@ -1,10 +1,6 @@
 /* global location, XMLHttpRequest, Location, requestAnimationFrame, cancelAnimationFrame, history, HTMLElement, HTMLScriptElement, HTMLAnchorElement, HTMLDocument, DOMParser, Event, getComputedStyle */
 
 /**
- * Style per http://standardjs.com
- */
-
-/**
  * Export.
  */
 const pjax = {
@@ -21,14 +17,14 @@ const pjax = {
 
   // Called when loading takes longer than `loadIndicatorDelay`. Should
   // visibly indicate the loading.
-  onIndicateLoadStart (): void {
+  onIndicateLoadStart () {
     document.documentElement.style.transition = 'opacity linear 0.05s'
     document.documentElement.style.opacity = '0.8'
   },
 
   // Called when transition is finished. Should roll back the effects of
   // `onIndicateLoadStart`.
-  onIndicateLoadEnd (): void {
+  onIndicateLoadEnd () {
     document.documentElement.style.transition = ''
     document.documentElement.style.opacity = ''
   },
@@ -49,7 +45,7 @@ const pjax = {
 
   // Triggers a pjax transition to the current page, reloading it without
   // destroying the JavaScript runtime and other assets.
-  reload (): void {
+  reload () {
     transitionTo(new Config(location, {
       'data-noscroll': true,
       'data-force-reload': true
@@ -69,49 +65,47 @@ if (typeof module === 'object' && module !== null &&
 let currentXhr: XMLHttpRequest = null
 
 // Used to detect useless popstate events.
-let lastPathname: string = ''
-let lastQuery: string = ''
+let lastPathname = ''
+let lastQuery = ''
 rememberPath()
+
+const attrNames = ['data-noscroll', 'data-force-reload', 'data-scroll-to-id']
 
 // Configuration object for interfacing between anchors, `location`, and
 // programmatic triggers.
-class Config {
-  href: string = ''
-  host: string = ''
-  hash: string = ''
-  pathname: string = ''
-  path: string = ''
-  protocol: string = ''
-  search: string = ''
-  isPush: boolean = false
-  rafId: number = 0
+function Config (urlUtil: HTMLAnchorElement|Location, attrs) {
+  this.href = ''
+  this.host = ''
+  this.hash = ''
+  this.pathname = ''
+  this.path = ''
+  this.protocol = ''
+  this.search = ''
+  this.isPush = false
+  this.rafId = 0
 
-  static attrNames = ['data-noscroll', 'data-force-reload', 'data-scroll-to-id']
+  // Copy main attributes.
+  Object.keys(this).forEach(key => {
+    if (key in urlUtil) this[key] = urlUtil[key]
+  })
 
-  constructor (urlUtil: HTMLAnchorElement|Location, properties?: any) {
-    // Copy properties.
-    Object.keys(this).forEach(key => {
-      if (key in urlUtil) this[key] = urlUtil[key]
+  // Define path.
+  this.path = this.protocol + '//' + this.host + this.pathname
+
+  // Copy attributes, if applicable.
+  if (urlUtil instanceof HTMLElement) {
+    attrNames.forEach(name => {
+      if (urlUtil.hasAttribute(name)) {
+        this[name] = urlUtil.getAttribute(name)
+      }
     })
+  }
 
-    // Define path.
-    this.path = this.protocol + '//' + this.host + this.pathname
-
-    // Copy attributes, if applicable.
-    if (urlUtil instanceof HTMLElement) {
-      Config.attrNames.forEach(name => {
-        if (urlUtil.hasAttribute(name)) {
-          this[name] = urlUtil.getAttribute(name)
-        }
-      })
-    }
-
-    // Add any additionally passed properties.
-    if (properties) {
-      Object.keys(properties).forEach(key => {
-        this[key] = properties[key]
-      })
-    }
+  // Add any additionally passed attributes.
+  if (attrs) {
+    Object.keys(attrs).forEach(key => {
+      this[key] = attrs[key]
+    })
   }
 }
 
@@ -189,7 +183,7 @@ window.addEventListener('popstate', event => {
   transitionTo(new Config(location, {rafId: rafId}))
 })
 
-function transitionTo (config: Config): void {
+function transitionTo (config: Config) {
   // Special behaviour if this is a push transition within one page. If it leads
   // to a hash target, try to scroll to it. Pjax is not performed.
   const path = location.protocol + '//' + location.host + location.pathname
@@ -221,7 +215,7 @@ function transitionTo (config: Config): void {
 
   const xhr = currentXhr = new XMLHttpRequest()
 
-  xhr.onload = function (): void {
+  xhr.onload = function () {
     if (xhr.status < 200 || xhr.status > 299) {
       xhr.onerror(null)
       return
@@ -273,13 +267,16 @@ function transitionTo (config: Config): void {
       window.scrollTo(0, 0)
     }
 
+    // Hook for scripts to clean up before the transition.
+    document.dispatchEvent(createEvent('simple-pjax-before-transition'))
+
     // Switch to the new document.
     replaceDocument(newDocument)
     indicateLoadEnd()
 
     // Provide a hook for scripts that may want to run when the document
     // is loaded.
-    document.dispatchEvent(createEvent('DOMContentLoaded'))
+    document.dispatchEvent(createEvent('simple-pjax-after-transition'))
 
     // Second scroll: after the transition.
     target = document.getElementById(targetId)
@@ -291,7 +288,7 @@ function transitionTo (config: Config): void {
     }
   }
 
-  xhr.onabort = xhr.onerror = xhr.ontimeout = function (): void {
+  xhr.onabort = xhr.onerror = xhr.ontimeout = function () {
     currentXhr = null
     if (config.isPush) history.pushState(null, '', xhr.responseURL || config.href)
     location.reload()
@@ -305,7 +302,7 @@ function transitionTo (config: Config): void {
   indicateLoadStart(xhr)
 }
 
-function indicateLoadStart (xhr: XMLHttpRequest): void {
+function indicateLoadStart (xhr: XMLHttpRequest) {
   if (pjax.loadIndicatorDelay > 0) {
     const id = setTimeout(function () {
       if (xhr.readyState === 4) {
@@ -319,7 +316,7 @@ function indicateLoadStart (xhr: XMLHttpRequest): void {
   }
 }
 
-function indicateLoadEnd (): void {
+function indicateLoadEnd () {
   if (pjax.loadIndicatorDelay > 0 && typeof pjax.onIndicateLoadEnd === 'function') {
     pjax.onIndicateLoadEnd()
   }
@@ -334,7 +331,7 @@ function getDocument (xhr: XMLHttpRequest): HTMLDocument {
   return new DOMParser().parseFromString(xhr.responseText, 'text/html')
 }
 
-function replaceDocument (doc: HTMLDocument): void {
+function replaceDocument (doc: HTMLDocument) {
   // Replace the `title` as the only user-visible part of the head. Assume
   // resource links, `<base>`, and other meaningful metadata to be identical.
   document.title = doc.title
@@ -362,7 +359,7 @@ function replaceDocument (doc: HTMLDocument): void {
   })
 }
 
-function removeScriptsWithSrc (doc: HTMLDocument): void {
+function removeScriptsWithSrc (doc: HTMLDocument) {
   [].slice.call(doc.scripts).forEach(script => {
     if (!!script.src && !!script.parentNode) {
       script.parentNode.removeChild(script)
@@ -392,7 +389,7 @@ function destroysDocument (script: string): boolean {
 
 // Used with each `history.pushState` call to help us discard redundant popstate
 // events.
-function rememberPath (): void {
+function rememberPath () {
   lastPathname = location.pathname
   lastQuery = location.search
 }
@@ -411,7 +408,7 @@ function createEvent (name: string): Event {
 }
 
 // See pjax.scrollOffsetSelector.
-function offsetScroll (): void {
+function offsetScroll () {
   if (pjax.scrollOffsetSelector) {
     const elem = document.querySelector(pjax.scrollOffsetSelector)
     const style = getComputedStyle(elem)

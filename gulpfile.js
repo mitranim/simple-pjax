@@ -5,8 +5,6 @@
  *   "gulp": "gulpjs/gulp#4.0"
  *
  * Requires Node.js 4.0+
- *
- * Style per http://standardjs.com
  */
 
 /** **************************** Dependencies ********************************/
@@ -23,17 +21,15 @@ const webpack = require('webpack')
 
 /** ******************************* Globals **********************************/
 
-const filename = 'simple-pjax'
-
 const src = {
   libSrc: 'src/simple-pjax.js',
-  libJs: `dist/${filename}.js`,
-  docHtml: 'src-docs/html/**/*',
-  docScripts: 'src-docs/scripts/**/*.js',
-  docScriptsCore: 'src-docs/scripts/app.js',
-  docStyles: 'src-docs/styles/**/*.scss',
-  docStylesCore: 'src-docs/styles/app.scss',
-  docImages: 'src-docs/images/**/*',
+  libJs: 'dist/simple-pjax.js',
+  docHtml: 'docs/html/**/*',
+  docScripts: 'docs/scripts/**/*.js',
+  docScriptsCore: 'docs/scripts/app.js',
+  docStyles: 'docs/styles/**/*.scss',
+  docStylesCore: 'docs/styles/app.scss',
+  docImages: 'docs/images/**/*',
   docFonts: 'node_modules/font-awesome/fonts/**/*'
 }
 
@@ -125,14 +121,14 @@ if (typeof history.pushState !== 'function') return;
 <%= contents %>
 
 }();`))
-    .pipe($.rename(`${filename}.js`))
+    .pipe($.rename('simple-pjax.js'))
     .pipe(gulp.dest(dest.lib))
 })
 
 gulp.task('lib:minify', function () {
   return gulp.src(src.libJs)
     .pipe($.uglify({mangle: true}))
-    .pipe($.rename(`${filename}.min.js`))
+    .pipe($.rename('simple-pjax.min.js'))
     .pipe(gulp.dest(dest.lib))
 })
 
