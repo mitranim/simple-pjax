@@ -38,29 +38,6 @@
         
           <div data-render-demo></div>
 
-<pre><code class="hljs lang-javascript">// Assuming React 0.14+
-import React from 'react'
-import {render} from 'react-dom'
-
-const Demo = () =&gt; (
-  &lt;div className='theme-primary pad'&gt;
-    I'm rendered with React!
-  &lt;/div&gt;
-)
-
-onEachLoad(() =&gt; {
-  const elem = document.getElementById('demoComponent')
-  if (elem) render(&lt;Demo /&gt;, elem)
-})
-
-function onEachLoad (callback) {
-  if (/loaded|complete|interactive/.test(document.readyState)) {
-    callback()
-  }
-  document.addEventListener('DOMContentLoaded', callback)
-}
-</code></pre>
-
         
       </article>
     </div>
@@ -86,6 +63,6 @@ function onEachLoad (callback) {
 </div>
 
 
-    <script src="app.js" async></script>
+    <script src="/simple-pjax/scripts/app.js" async></script>
   </body>
 </html>
