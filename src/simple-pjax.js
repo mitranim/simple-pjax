@@ -46,7 +46,7 @@ const pjax = {
   // Triggers a pjax transition to the current page, reloading it without
   // destroying the JavaScript runtime and other assets.
   reload () {
-    transitionTo(new Config(location, {
+    transitionTo(createConfig(location, {
       'data-noscroll': true,
       'data-force-reload': true
     }))
@@ -71,42 +71,40 @@ rememberPath()
 
 const attrNames = ['data-noscroll', 'data-force-reload', 'data-scroll-to-id']
 
-// Configuration object for interfacing between anchors, `location`, and
-// programmatic triggers.
-function Config (urlUtil: HTMLAnchorElement|Location, attrs) {
-  this.href = ''
-  this.host = ''
-  this.hash = ''
-  this.pathname = ''
-  this.path = ''
-  this.protocol = ''
-  this.search = ''
-  this.isPush = false
-  this.rafId = 0
+// Configuration for interfacing between anchors, `location`, and programmatic
+// triggers.
+function createConfig (urlUtil: HTMLAnchorElement|Location, attrs) {
+  const config = {
+    href: '',
+    host: '',
+    hash: '',
+    pathname: '',
+    path: '',
+    protocol: '',
+    search: '',
+    isPush: false,
+    rafId: 0
+  }
 
   // Copy main attributes.
-  Object.keys(this).forEach(key => {
-    if (key in urlUtil) this[key] = urlUtil[key]
-  })
+  for (const key in config) if (key in urlUtil) config[key] = urlUtil[key]
 
   // Define path.
-  this.path = this.protocol + '//' + this.host + this.pathname
+  config.path = config.protocol + '//' + config.host + config.pathname
 
   // Copy attributes, if applicable.
   if (urlUtil instanceof HTMLElement) {
     attrNames.forEach(name => {
       if (urlUtil.hasAttribute(name)) {
-        this[name] = urlUtil.getAttribute(name)
+        config[name] = urlUtil.getAttribute(name)
       }
     })
   }
 
   // Add any additionally passed attributes.
-  if (attrs) {
-    Object.keys(attrs).forEach(key => {
-      this[key] = attrs[key]
-    })
-  }
+  if (attrs) for (const key in attrs) config[key] = attrs[key]
+
+  return config
 }
 
 // Main listener.
@@ -142,7 +140,7 @@ document.addEventListener('click', event => {
 
   // Load clicked link.
   event.preventDefault()
-  transitionTo(new Config(anchor, {isPush: true}))
+  transitionTo(createConfig(anchor, {isPush: true}))
 })
 
 window.addEventListener('popstate', event => {
@@ -164,10 +162,10 @@ window.addEventListener('popstate', event => {
    * jumps around. TODO look for a workaround.
    *
    * Unfortunately FF restores the scroll position _before_ firing popstate
-   * (which is spec-compliant), so the page still jumps around. To work around
-   * this, we would have to listen to scroll events on window and continuously
-   * memorize the last scroll position; I'm going to leave the FF behaviour
-   * as-is until a better workaround comes up.
+   * (I think this is spec-compliant), so the page still jumps around. To work
+   * around this, we would have to listen to scroll events on window and
+   * continuously memorize the last scroll position; I'm going to leave the FF
+   * behaviour as-is until a better workaround comes up.
    *
    * The FF problem might fix itself:
    *   https://bugzilla.mozilla.org/show_bug.cgi?id=1186774
@@ -180,10 +178,10 @@ window.addEventListener('popstate', event => {
     window.scrollTo(currentX, currentY)
   })
 
-  transitionTo(new Config(location, {rafId: rafId}))
+  transitionTo(createConfig(location, {rafId: rafId}))
 })
 
-function transitionTo (config: Config) {
+function transitionTo (config) {
   // Special behaviour if this is a push transition within one page. If it leads
   // to a hash target, try to scroll to it. Pjax is not performed.
   const path = location.protocol + '//' + location.host + location.pathname
@@ -234,8 +232,9 @@ function transitionTo (config: Config) {
     }
 
     if (config.isPush) {
-      const replacementHref = xhr.responseURL && (xhr.responseURL !== config.path) ?
-                              xhr.responseURL : config.href
+      const replacementHref = xhr.responseURL && (xhr.responseURL !== config.path)
+        ? xhr.responseURL
+        : config.href
       history.pushState(null, newDocument.title, replacementHref)
       rememberPath()
     }
@@ -395,8 +394,7 @@ function rememberPath () {
 }
 
 function pathUnchanged (): boolean {
-  return location.pathname === lastPathname &&
-         location.search === lastQuery
+  return location.pathname === lastPathname && location.search === lastQuery
 }
 
 // IE compat: IE doesn't support dispatching events created with constructors,

@@ -15,9 +15,6 @@
   },
   "ignore": [
     "*",
-    "!dist/simple-pjax.js",
-    "!dist/simple-pjax.min.js",
-    "!bower.json",
-    "!readme.md"
+    "!dist"
   ]
 }

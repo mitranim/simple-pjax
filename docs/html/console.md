@@ -1,3 +1,5 @@
+{% extend('index.html') %}
+
 ## Console
 
 This page logs a message to the console on each visit. Note how the messages

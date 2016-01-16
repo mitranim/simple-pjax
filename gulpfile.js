@@ -1,12 +1,5 @@
 'use strict'
 
-/**
- * Requires gulp 4.0:
- *   "gulp": "gulpjs/gulp#4.0"
- *
- * Requires Node.js 4.0+
- */
-
 /** **************************** Dependencies ********************************/
 
 const $ = require('gulp-load-plugins')()
@@ -14,9 +7,8 @@ const bsync = require('browser-sync').create()
 const del = require('del')
 const flags = require('yargs').boolean('prod').argv
 const gulp = require('gulp')
-const hjs = require('highlight.js')
-const marked = require('gulp-marked/node_modules/marked')
 const pt = require('path')
+const statilOptions = require('./statil')
 const webpack = require('webpack')
 
 /** ******************************* Globals **********************************/
@@ -49,58 +41,20 @@ function reload (done) {
   done()
 }
 
-/** ******************************* Config ***********************************/
-
-/**
- * Change how marked compiles links to add target="_blank" to links to other sites.
- */
-
-// Custom link renderer func that adds target="_blank" to links to other sites.
-// Mostly copied from the marked source.
-marked.Renderer.prototype.link = function (href, title, text) {
-  if (this.options.sanitize) {
-    let prot = ''
-    try {
-      prot = decodeURIComponent(unescape(href))
-        .replace(/[^\w:]/g, '')
-        .toLowerCase()
-    } catch (e) {
-      return ''
-    }
-    if (prot.indexOf('javascript:') === 0 || prot.indexOf('vbscript:') === 0) {
-      return ''
-    }
-  }
-  let out = '<a href="' + href + '"'
-  if (title) {
-    out += ' title="' + title + '"'
-  }
-  if (/^[a-z]+:\/\//.test(href)) {
-    out += ' target="_blank"'
-  }
-  out += '>' + text + '</a>'
-  return out
-}
+function noop () {}
 
 /** ******************************** Tasks ***********************************/
 
 /* ---------------------------------- Lib -----------------------------------*/
 
-gulp.task('lib:clear', function (done) {
-  del(dest.lib).then((_) => {done()})
-})
+gulp.task('lib:clear', () => (
+  del(dest.lib).catch(noop)
+))
 
-gulp.task('lib:compile', function () {
-  return gulp.src(src.libSrc)
+gulp.task('lib:compile', () => (
+  gulp.src(src.libSrc)
     .pipe($.babel({
       modules: 'ignore',
-      optional: [
-        'spec.protoToAssign',
-        'es7.classProperties'
-      ],
-      loose: [
-        'es6.classes'
-      ],
       blacklist: ['strict']
     }))
     .pipe($.wrap(
@@ -123,70 +77,36 @@ if (typeof history.pushState !== 'function') return;
 }();`))
     .pipe($.rename('simple-pjax.js'))
     .pipe(gulp.dest(dest.lib))
-})
+))
 
-gulp.task('lib:minify', function () {
-  return gulp.src(src.libJs)
+gulp.task('lib:minify', () => (
+  gulp.src(src.libJs)
     .pipe($.uglify({mangle: true}))
     .pipe($.rename('simple-pjax.min.js'))
     .pipe(gulp.dest(dest.lib))
-})
+))
 
 gulp.task('lib:build', gulp.series('lib:clear', 'lib:compile', 'lib:minify'))
 
-gulp.task('lib:watch', function () {
+gulp.task('lib:watch', () => {
   $.watch(src.libSrc, gulp.series('lib:build'))
 })
 
 /* --------------------------------- HTML -----------------------------------*/
 
-gulp.task('docs:html:clear', function (done) {
-  del(dest.docHtml + '/**/*.html').then((_) => {done()})
-})
+gulp.task('docs:html:clear', () => (
+  del(dest.docHtml + '/**/*.html').catch(noop)
+))
 
-gulp.task('docs:html:compile', function () {
-  const filterMd = $.filter('**/*.md', {restore: true})
-
-  return gulp.src(src.docHtml)
-    // Pre-process markdown files.
-    .pipe(filterMd)
-    .pipe($.marked({
-      gfm: true,
-      tables: true,
-      breaks: false,
-      sanitize: false,
-      smartypants: false,
-      pedantic: false,
-      // Code highlighter.
-      highlight: function (code, lang) {
-        const result = lang ? hjs.highlight(lang, code) : hjs.highlightAuto(code)
-        return result.value
-      }
-    }))
-    // Add hljs code class.
-    .pipe($.replace(/<pre><code class="(.*)">|<pre><code>/g,
-                    '<pre><code class="hljs $1">'))
-    // Return other files.
-    .pipe(filterMd.restore)
-    // Unpack commented HTML parts.
-    .pipe($.replace(/<!--\s*:((?:[^:]|:(?!\s*-->))*):\s*-->/g, '$1'))
-    // Render all html.
-    .pipe($.statil({imports: {prod: flags.prod}}))
-    // Change each `<filename>` into `<filename>/index.html`.
-    .pipe($.rename(function (path) {
-      switch (path.basename + path.extname) {
-        case 'index.html': case '404.html': return
-      }
-      path.dirname = pt.join(path.dirname, path.basename)
-      path.basename = 'index'
-    }))
-    // Write to disk.
+gulp.task('docs:html:compile', () => (
+  gulp.src(src.docHtml)
+    .pipe($.statil(statilOptions))
     .pipe(gulp.dest(dest.docHtml))
-})
+))
 
 gulp.task('docs:html:build', gulp.series('docs:html:clear', 'docs:html:compile'))
 
-gulp.task('docs:html:watch', function () {
+gulp.task('docs:html:watch', () => {
   $.watch(src.docHtml, gulp.series('docs:html:build', reload))
 })
 
@@ -239,8 +159,7 @@ function scripts (done) {
     plugins: flags.prod ? [
       new webpack.optimize.UglifyJsPlugin({compress: {warnings: false}})
     ] : [],
-    watch: watch,
-    cache: false
+    watch: watch
   }, onComplete)
 
   // Workaround for webpack watcher not picking up changes in lib files.
@@ -271,16 +190,16 @@ function scripts (done) {
 
 gulp.task('docs:scripts:build', scripts)
 
-gulp.task('docs:scripts:build:watch', (_) => {scripts()})
+gulp.task('docs:scripts:build:watch', () => void scripts())
 
 /* -------------------------------- Styles ----------------------------------*/
 
-gulp.task('docs:styles:clear', function (done) {
-  del(dest.docStyles).then((_) => {done()})
-})
+gulp.task('docs:styles:clear', () => (
+  del(dest.docStyles).catch(noop)
+))
 
-gulp.task('docs:styles:compile', function () {
-  return gulp.src(src.docStylesCore)
+gulp.task('docs:styles:compile', () => (
+  gulp.src(src.docStylesCore)
     .pipe($.sass())
     .pipe($.autoprefixer())
     .pipe($.if(flags.prod, $.minifyCss({
@@ -289,55 +208,55 @@ gulp.task('docs:styles:compile', function () {
       advanced: false
     })))
     .pipe(gulp.dest(dest.docStyles))
-    .pipe(bsync.reload({stream: true}))
-})
+    .pipe(bsync.stream())
+))
 
 gulp.task('docs:styles:build',
   gulp.series('docs:styles:clear', 'docs:styles:compile'))
 
-gulp.task('docs:styles:watch', function () {
+gulp.task('docs:styles:watch', () => {
   $.watch(src.docStyles, gulp.series('docs:styles:build'))
   $.watch('node_modules/stylific/scss/**/*.scss', gulp.series('docs:styles:build'))
 })
 
 /* -------------------------------- Images ----------------------------------*/
 
-gulp.task('docs:images:clear', function (done) {
-  del(dest.docImages).then((_) => {done()})
-})
+gulp.task('docs:images:clear', () => (
+  del(dest.docImages).catch(noop)
+))
 
-gulp.task('docs:images:copy', function () {
-  return gulp.src(src.docImages)
+gulp.task('docs:images:copy', () => (
+  gulp.src(src.docImages)
     .pipe(gulp.dest(dest.docImages))
-    .pipe(bsync.reload({stream: true}))
-})
+    .pipe(bsync.stream())
+))
 
 gulp.task('docs:images:build', gulp.series('docs:images:clear', 'docs:images:copy'))
 
-gulp.task('docs:images:watch', function () {
+gulp.task('docs:images:watch', () => {
   $.watch(src.docImages, gulp.series('docs:images:build'))
 })
 
 /* --------------------------------- Fonts ----------------------------------*/
 
-gulp.task('docs:fonts:clear', function (done) {
-  del(dest.docFonts).then((_) => {done()})
-})
+gulp.task('docs:fonts:clear', () => (
+  del(dest.docFonts).catch(noop)
+))
 
-gulp.task('docs:fonts:copy', function () {
-  return gulp.src(src.docFonts).pipe(gulp.dest(dest.docFonts))
-})
+gulp.task('docs:fonts:copy', () => (
+  gulp.src(src.docFonts).pipe(gulp.dest(dest.docFonts))
+))
 
 gulp.task('docs:fonts:build', gulp.series('docs:fonts:copy'))
 
-gulp.task('docs:fonts:watch', function () {
+gulp.task('docs:fonts:watch', () => {
   $.watch(src.docFonts, gulp.series('docs:fonts:build', reload))
 })
 
 /* -------------------------------- Server ----------------------------------*/
 
-gulp.task('server', function () {
-  return bsync.init({
+gulp.task('server', () => (
+  bsync.init({
     startPath: '/simple-pjax/',
     server: {
       baseDir: dest.docHtml,
@@ -353,7 +272,7 @@ gulp.task('server', function () {
     ghostMode: false,
     notify: false
   })
-})
+))
 
 /* -------------------------------- Default ---------------------------------*/
 

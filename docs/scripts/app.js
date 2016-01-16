@@ -1,6 +1,5 @@
 /* global localStorage, location, getComputedStyle */
 
-import 'stylific'
 import React from 'react'
 import {renderTo} from './utils'
 

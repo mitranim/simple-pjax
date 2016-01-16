@@ -7,7 +7,7 @@ export function renderTo (selector: string) {
   return (Component: typeof React.Component) => {
     onload(() => {
       const elements = document.querySelectorAll(selector)
-      ;[].slice.call(elements).forEach(element => {
+      ;[].forEach.call(elements, element => {
         unmountQueue.push(element)
         render(<Component />, element)
       })
@@ -24,7 +24,7 @@ export function onload (callback: Function) {
     callback()
   } else {
     document.addEventListener('DOMContentLoaded', function cb () {
-      document.removeEventListener(cb)
+      document.removeEventListener('DOMContentLoaded', cb)
       callback()
     })
   }

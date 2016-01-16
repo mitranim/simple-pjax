@@ -1,32 +1,24 @@
-<!DOCTYPE html>
-<html>
-  <head>
-    <title>simple-pjax</title>
-    <meta name="author" content="mitranim">
-    <meta charset="utf-8">
-    <base href="/simple-pjax/">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, minimum-scale=1, maximum-scale=2, initial-scale=1, user-scalable=yes">
-    <link rel="stylesheet" type="text/css" href="/simple-pjax/styles/app.css">
-    <link rel="icon" href="data:;base64,=">
-  </head>
+<!doctype html>
 
-  <body>
-    <%= $include('$partials/banner', $) %>
+<base href="/simple-pjax/">
+<meta charset="utf-8">
+<title>simple-pjax</title>
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, minimum-scale=1, maximum-scale=2, initial-scale=1, user-scalable=yes">
+<link rel="stylesheet" type="text/css" href="styles/app.css">
+<link rel="icon" href="data:;base64,=">
 
-    <div class="row-start-stretch">
-      <%= $include('$partials/sidenav', $) %>
-      <article class="flex-1">
-        <% if ($path === 'index') { %>
-          <%= $include('$index', $) %>
-        <% } else { %>
-          <%= $content %>
-        <% } %>
-      </article>
-    </div>
+<body></body>
 
-    <%= $include('$partials/footer', $) %>
+{{include('partials/banner.html')}}
 
-    <script src="/simple-pjax/scripts/app.js" async></script>
-  </body>
-</html>
+<div class="row-start-stretch">
+  {{include('partials/sidenav.html')}}
+  <article class="flex-1">
+    {{path === 'index.html' ? include('partials/index.md') : content}}
+  </article>
+</div>
+
+{{include('partials/footer.html')}}
+
+<script src="scripts/app.js" async></script>

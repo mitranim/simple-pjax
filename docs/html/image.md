@@ -1,3 +1,5 @@
+{% extend('index.html') %}
+
 ## Image
 
 This page displays a large image. When revisiting the page, it's shown
