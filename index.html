@@ -1,18 +1,16 @@
-<!DOCTYPE html>
-<html>
-  <head>
-    <title>simple-pjax</title>
-    <meta name="author" content="mitranim">
-    <meta charset="utf-8">
-    <base href="/simple-pjax/">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, minimum-scale=1, maximum-scale=2, initial-scale=1, user-scalable=yes">
-    <link rel="stylesheet" type="text/css" href="/simple-pjax/styles/app.css">
-    <link rel="icon" href="data:;base64,=">
-  </head>
+<!doctype html>
 
-  <body>
-    <div class="banner row-between-stretch">
+<base href="/simple-pjax/">
+<meta charset="utf-8">
+<title>simple-pjax</title>
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, minimum-scale=1, maximum-scale=2, initial-scale=1, user-scalable=yes">
+<link rel="stylesheet" type="text/css" href="styles/app.css">
+<link rel="icon" href="data:;base64,=">
+
+<body></body>
+
+<div class="banner row-between-stretch">
   <a href="" class="flex-1 pad space-out">
     <h1><code>simple-pjax</code> demo</h1>
     <p>Click sidebar links while observing network activity</p>
@@ -26,37 +24,35 @@
 </div>
 
 
-    <div class="row-start-stretch">
-      <div class="sidenav">
+<div class="row-start-stretch">
+  <div class="sidenav">
   <a class="active" href=""><span>Home</span></a>
   <a  href="image/"><span>Image</span></a>
   <a  href="react/"><span>React</span></a>
   <a  href="console/"><span>Console</span></a>
 </div>
 
-      <article class="flex-1">
-        
-          <h2 id="overview">Overview</h2>
+  <article class="flex-1">
+    <h2 id="overview">Overview</h2>
 <p>Pjax is a technique that combines Ajax and <code>history.pushState</code> to speed up page
 transitions on classic multi-page websites.</p>
 <p>It lets you combine server-side rendering and routing with fast clientside
 navigation.</p>
-<p>Open your browser&#39;s network console and observe it while navigating the site.
-This site is very lightweight, so the effects won&#39;t seem dramatic. However, for
+<p>Open your browser’s network console and observe it while navigating the site.
+This site is very lightweight, so the effects won’t seem dramatic. However, for
 large, content-heavy websites the speedup can be cataclysmic.</p>
-<p>This is a lightweight but powerful library that doesn&#39;t require configuration. Try it on your website!</p>
+<p>This is a lightweight but powerful library that doesn’t require configuration. Try it on your website!</p>
 <p>See the full readme in the
 <a href="https://github.com/Mitranim/simple-pjax" target="_blank">source repository</a>.</p>
 
-        
-      </article>
-    </div>
+  </article>
+</div>
 
-    <div class="sf-footer">
+<div class="sf-footer">
   <div class="sf-footer-body">
     <div class="flex-1 row-start-center">
       <span>
-        2015
+        2015—2016
         <a href="http://mitranim.com" target="_blank" class="decorated">Mitranim</a>
       </span>
     </div>
@@ -73,6 +69,4 @@ large, content-heavy websites the speedup can be cataclysmic.</p>
 </div>
 
 
-    <script src="/simple-pjax/scripts/app.js" async></script>
-  </body>
-</html>
+<script src="scripts/app.js" async></script>
