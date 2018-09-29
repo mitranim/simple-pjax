@@ -160,16 +160,6 @@ window.addEventListener('popstate', event => {
    *
    * Webkit (Safari) does receive the correct scroll values, but the page still
    * jumps around. TODO look for a workaround.
-   *
-   * Unfortunately FF restores the scroll position _before_ firing popstate
-   * (I think this is spec-compliant), so the page still jumps around. To work
-   * around this, we would have to listen to scroll events on window and
-   * continuously memorize the last scroll position; I'm going to leave the FF
-   * behaviour as-is until a better workaround comes up.
-   *
-   * The FF problem might fix itself:
-   *   https://bugzilla.mozilla.org/show_bug.cgi?id=1186774
-   *   https://github.com/whatwg/html/issues/39
    */
 
   const currentX = window.scrollX
