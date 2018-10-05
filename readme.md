@@ -15,9 +15,9 @@ Lean library that improves page loading times for classic multi-page websites.
 Gives them some of the advantages enjoyed by SPA (single-page apps).
 Configuration is optional.
 
-See a simple demo at http://mitranim.com/simple-pjax/.
+See a simple demo at https://mitranim.com/simple-pjax/.
 
-Read an explanatory post at http://mitranim.com/thoughts/cheating-for-performance-pjax/.
+Read an explanatory post at https://mitranim.com/posts/cheating-for-performance-pjax.
 
 `Pjax` is a combo of `pushState` and `Ajax`. There are
 [other](https://github.com/defunkt/jquery-pjax) pjax implementations floating
