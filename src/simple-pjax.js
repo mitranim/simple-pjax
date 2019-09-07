@@ -50,6 +50,10 @@ const pjax = {
       'data-noscroll': true,
       'data-force-reload': true
     }))
+  },
+
+  replaceBody (newBody) {
+    document.body = newBody
   }
 }
 
@@ -335,7 +339,7 @@ function replaceDocument (doc: HTMLDocument) {
   removeScriptsWithSrc(doc)
 
   // Replace the body.
-  document.body = doc.body
+  pjax.replaceBody(doc.body)
 
   // Execute inline scripts found in the new document. Creating copies and
   // adding them to the DOM (instead of using `new Function(...)()` to eval)
